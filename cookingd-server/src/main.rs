@@ -14,6 +14,7 @@ use crate::gql_mutations::Mutations;
 mod gql_models;
 mod gql_queries;
 mod gql_mutations;
+mod servies;
 
 type ServiceSchema = Schema<Query, Mutations, EmptySubscription>;
 

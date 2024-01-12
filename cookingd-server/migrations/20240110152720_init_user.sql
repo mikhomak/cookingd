@@ -1,4 +1,4 @@
-CREATE TABLE "siteconfigurations"
+CREATE TABLE "site_configuration"
 (
     id                  SERIAL PRIMARY KEY,
     allow_site_comments BOOL NOT NULL default true,
