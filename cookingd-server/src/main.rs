@@ -12,6 +12,7 @@ use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 
 mod gql_models;
 mod gql_queries;
+mod gql_mutations;
 
 type ServiceSchema = Schema<Query, EmptyMutation, EmptySubscription>;
 
@@ -36,7 +37,6 @@ async fn index_playground() -> HttpResponse {
 #[actix_web::main]
 async fn main() -> Result<()> {
     dotenv().ok();
-    env_logger::init();
 
     let database_url: String = env::var("DATABASE_URL").expect("DATABASE_URL is not set");
     let host: String = env::var("HOST").expect("HOST is not set");

@@ -34,7 +34,7 @@ impl User {
         let row = sqlx::query_as!(
             User,
             "SELECT * FROM \"user\" WHERE id = $1",
-            Uuid::parse_str(id)?
+            uuid::Uuid::parse_str(id)?
         )
             .fetch_one(pool)
             .await?;
@@ -54,7 +54,7 @@ impl User {
         sqlx::query!(
             "UPDATE \"user\" SET name=$1 WHERE id = $2",
             name,
-            Uuid::parse_str(id)?
+            uuid::Uuid::parse_str(id)?
         )
             .execute(pool)
             .await?;
@@ -63,7 +63,7 @@ impl User {
     }
 
     pub async fn delete(pool: &PgPool, id: &str) -> Result<()> {
-        sqlx::query!("DELETE FROM \"user\" WHERE id = $1", Uuid::parse_str(id)?)
+        sqlx::query!("DELETE FROM \"user\" WHERE id = $1", uuid::Uuid::parse_str(id)?)
             .execute(pool)
             .await?;
 
