@@ -1,0 +1,17 @@
+[package]
+name = "cookingd-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = { version = "4.0.0-rc.2", default-features = false, features = ["macros"] }
+anyhow = "1.0.53"
+async-graphql = { version = "7.0.0", default-features = false, features = ["chrono", "uuid", "playground"] }
+async-graphql-actix-web = "7.0.0"
+chrono = { version = "0.4.19", features = ["serde"] }
+log = "0.4.14"
+serde = "1.0.136"
+dotenv = "0.15.0"
+sqlx = { version = "0.7.3", features = [ "uuid", "postgres",  "macros", "chrono", "runtime-async-std"] }
+uuid = { version = "1.6.1", features = ["serde", "v4"] }
+env_logger = "0.10.1"
