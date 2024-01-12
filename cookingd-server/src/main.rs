@@ -9,12 +9,13 @@ use std::env;
 use web::Data;
 use crate::gql_queries::Query;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
+use crate::gql_mutations::Mutations;
 
 mod gql_models;
 mod gql_queries;
 mod gql_mutations;
 
-type ServiceSchema = Schema<Query, EmptyMutation, EmptySubscription>;
+type ServiceSchema = Schema<Query, Mutations, EmptySubscription>;
 
 async fn index(schema: Data<ServiceSchema>, req: GraphQLRequest) -> GraphQLResponse {
     schema.execute(req.into_inner()).await.into()
@@ -43,7 +44,7 @@ async fn main() -> Result<()> {
     let port: String = env::var("PORT").expect("PORT is not set");
     let db_pool: PgPool = PgPool::connect(&database_url).await?;
 
-    let schema: ServiceSchema = Schema::build(Query, EmptyMutation, EmptySubscription)
+    let schema: ServiceSchema = Schema::build(Query, Mutations, EmptySubscription)
         .data(db_pool)
         .finish();
 

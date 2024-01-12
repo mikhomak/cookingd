@@ -1,7 +1,6 @@
-
 use actix_web::{guard, middleware, web, App, HttpRequest, HttpServer, Responder};
 use anyhow::Result;
-use async_graphql::{Context, EmptySubscription, FieldResult, Object, Schema, ID};
+use async_graphql::{Context, EmptySubscription, FieldResult, Object, Schema, ID, InputObject};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use dotenv::dotenv;
 use sqlx::postgres::PgPool;
@@ -11,20 +10,32 @@ use crate::gql_mutations::Mutations;
 
 use crate::gql_models::user_model::User;
 
+#[derive(InputObject)]
+pub struct UserRegistrationInput {
+    pub name: String,
+    pub email: String,
+    pub password: String,
+    pub consent: bool,
+}
 
 #[async_graphql::Object]
 impl Mutations {
-/*    async fn create_User(
+    async fn create_user(
         &self,
         ctx: &Context<'_>,
-        title: String,
+        user_input: UserRegistrationInput,
     ) -> FieldResult<User> {
         let pool = ctx.data::<PgPool>().unwrap();
-        let row = User::create(&pool).await?;
+        let row = User::create(&pool, &UserRegistrationInput {
+            name: user_input.name,
+            email: user_input.email,
+            password: user_input.password,
+            consent: true
+        }).await?;
         Ok(row)
-    }*/
+    }
 
-    async fn delete_User(&self, ctx: &Context<'_>, id: ID) -> FieldResult<bool> {
+    async fn delete_user(&self, ctx: &Context<'_>, id: ID) -> FieldResult<bool> {
         let pool = ctx.data::<PgPool>().unwrap();
         let id = id.parse::<String>()?;
 
@@ -32,11 +43,11 @@ impl Mutations {
         Ok(true)
     }
 
-    async fn update_User(
+    async fn update_user(
         &self,
         ctx: &Context<'_>,
         id: ID,
-        name: String
+        name: String,
     ) -> FieldResult<User> {
         let pool = ctx.data::<PgPool>().unwrap();
         let id = id.parse::<String>()?;

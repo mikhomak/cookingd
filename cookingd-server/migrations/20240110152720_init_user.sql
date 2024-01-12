@@ -7,7 +7,7 @@ CREATE TABLE "siteconfigurations"
     allow_login         BOOL not null default true
 );
 
-CREATE TABLE "user"
+CREATE TABLE "c_user"
 (
     id            UUID         NOT NULL DEFAULT gen_random_uuid(),
     name          VARCHAR(50)  NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE "post"
     created_at     TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,
     likes          bigint      NOT NULL DEFAULT 0,
     rating         float8      NOT NULL DEFAULT 0,
-    user_id        UUID        NOT NULL REFERENCES "user" (id),
+    user_id        UUID        NOT NULL REFERENCES "c_user" (id),
     allow_comments BOOL        NOT NULL default true,
     allow_likes    BOOL        NOT NULL default true,
     PRIMARY KEY (id)
@@ -37,7 +37,7 @@ CREATE TABLE "post"
 CREATE TABLE "comment"
 (
     id         UUID        NOT NULL DEFAULT gen_random_uuid(),
-    user_id    UUID        NOT NULL REFERENCES "user" (id),
+    user_id    UUID        NOT NULL REFERENCES "c_user" (id),
     post_id    UUID        NOT NULL REFERENCES "post" (id),
     text       text        not null,
     created_at TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,

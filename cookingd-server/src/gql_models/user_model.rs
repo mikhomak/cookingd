@@ -1,39 +1,43 @@
 use anyhow::Result;
-use async_graphql::SimpleObject;
+use async_graphql::{FieldResult, SimpleObject};
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
+use chrono;
+use crate::gql_mutations::user_mutation::UserRegistrationInput;
 
 #[derive(SimpleObject, FromRow, Deserialize, Serialize)]
 pub struct User {
     pub id: sqlx::types::Uuid,
-    name: String,
-    email: String,
-    login_enabled: bool,
-    password: String,
-    created_at: DateTime<Utc>,
-    consent: bool,
+    pub name: String,
+    pub email: String,
+    pub login_enabled: bool,
+    pub password: String,
+    pub created_at: DateTime<Utc>,
+    pub consent: bool,
 }
 
 
 impl User {
-    /*
-    pub async fn create(pool: &PgPool, name: &str) -> Result<User> {
-        let row = sqlx::query!(
-            "INSERT INTO user(name) VALUES ($1) RETURNING id",
-            name,
-        )
+    pub async fn create(pool: &PgPool, user: &UserRegistrationInput) -> FieldResult<User> {
+        let row = sqlx::query_as!(
+            User,
+            "INSERT INTO c_user(name, email, password, login_enabled, consent) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+            user.name,
+            user.email,
+            user.password,
+            true,
+            true)
             .fetch_one(pool)
             .await?;
-
         Ok(row)
+
     }
-     */
 
     pub async fn read_one(pool: &PgPool, id: &str) -> Result<User> {
         let row = sqlx::query_as!(
             User,
-            "SELECT * FROM \"user\" WHERE id = $1",
+            "SELECT * FROM c_user WHERE id = $1",
             uuid::Uuid::parse_str(id)?
         )
             .fetch_one(pool)
@@ -43,7 +47,7 @@ impl User {
     }
 
     pub async fn read_all(pool: &PgPool) -> Result<Vec<User>> {
-        let rows = sqlx::query_as!(User, "SELECT * FROM \"user\"")
+        let rows = sqlx::query_as!(User, "SELECT * FROM c_user")
             .fetch_all(pool)
             .await?;
 
@@ -52,7 +56,7 @@ impl User {
 
     pub async fn update(pool: &PgPool, id: &str, name: &str) -> Result<User> {
         sqlx::query!(
-            "UPDATE \"user\" SET name=$1 WHERE id = $2",
+            "UPDATE c_user SET name=$1 WHERE id = $2",
             name,
             uuid::Uuid::parse_str(id)?
         )
@@ -63,7 +67,7 @@ impl User {
     }
 
     pub async fn delete(pool: &PgPool, id: &str) -> Result<()> {
-        sqlx::query!("DELETE FROM \"user\" WHERE id = $1", uuid::Uuid::parse_str(id)?)
+        sqlx::query!("DELETE FROM c_user WHERE id = $1", uuid::Uuid::parse_str(id)?)
             .execute(pool)
             .await?;
 
