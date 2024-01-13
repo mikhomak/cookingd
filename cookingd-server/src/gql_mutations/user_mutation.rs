@@ -4,8 +4,10 @@ use sqlx::postgres::PgPool;
 use log::{error, info};
 use crate::gql_mutations::UserMutations;
 
-use crate::gql_models::user_model::User;
+use crate::psql_models::user_psql_model::UserModel;
 use crate::servies::site_configuration_service::is_registration_enabled;
+use crate::gql_models::user_gql_model::User;
+
 
 #[derive(InputObject)]
 pub struct UserRegistrationInput {
@@ -32,10 +34,10 @@ impl UserMutations {
                     return Err(async_graphql::Error::new("Registration failed!"));
                 }
 
-                let r_created_user = User::create(&pool, &user_input).await;
+                let r_created_user = UserModel::create(&pool, &user_input).await;
 
                 match r_created_user {
-                    Ok(created_user) => Ok(created_user),
+                    Ok(created_user) => Ok(UserModel::convert_to_gql(&created_user)),
                     Err(_) => {
                         error!("Cannot create a user due to error");
                         Err(async_graphql::Error::new("Registration failed!"))
@@ -54,7 +56,7 @@ impl UserMutations {
         let id = id.parse::<String>()?;
         match r_pool {
             Ok(pool) => {
-                let r_delete: Result<(), _> = User::delete(&pool, &id).await;
+                let r_delete: Result<(), _> = UserModel::delete(&pool, &id).await;
                 match r_delete {
                     Ok(_) => {
                         info!("User with id {} was deleted", id);
@@ -84,11 +86,11 @@ impl UserMutations {
 
         match r_pool {
             Ok(pool) => {
-                let r_user: Result<User, _> = User::update(&pool, &id, &name).await;
+                let r_user: Result<UserModel, _> = UserModel::update(&pool, &id, &name).await;
                 match r_user {
                     Ok(user) => {
                         info!("User with id [{}] was updated!", id);
-                        Ok(user)
+                        Ok(UserModel::convert_to_gql(&user))
                     }
                     Err(error) => {
                         error!("Cannot update a user with id {} due to error {}", id, error.to_string());

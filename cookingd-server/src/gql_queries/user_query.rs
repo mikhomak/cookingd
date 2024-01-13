@@ -4,8 +4,8 @@ use async_graphql::Context;
 use sqlx::PgPool;
 use async_graphql::FieldResult;
 use log::error;
-
-use crate::gql_models::user_model::User;
+use crate::gql_models::user_gql_model::User;
+use crate::psql_models::user_psql_model::UserModel;
 
 #[Object(extends)]
 impl UserQuery {
@@ -13,9 +13,9 @@ impl UserQuery {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_users = User::read_all(&pool).await;
+                let r_users = UserModel::read_all(&pool).await;
                 match r_users {
-                    Ok(users) => Ok(users),
+                    Ok(users) => Ok(UserModel::convert_all_to_gql(&users)),
                     Err(error) => {
                         error!("Users couldn't be fetched from the db due to error {}", error.to_string());
                         Err(async_graphql::Error::new("Users not found, error encountered"))
@@ -33,9 +33,9 @@ impl UserQuery {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_user = User::read_one(&pool, &id).await;
+                let r_user = UserModel::read_one(&pool, &id).await;
                 match r_user {
-                    Ok(users) => Ok(users),
+                    Ok(users) => Ok(UserModel::convert_to_gql(&users)),
                     Err(error) => {
                         error!("User with id {} not found due to error {}", id, error.to_string());
                         Err(async_graphql::Error::new("User not found, error encountered"))

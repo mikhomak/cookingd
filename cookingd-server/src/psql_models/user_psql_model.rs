@@ -1,13 +1,15 @@
 use anyhow::Result;
-use async_graphql::{FieldResult, SimpleObject};
+use async_graphql::{ComplexObject, Context, FieldResult, SimpleObject};
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 use chrono;
+use crate::gql_models::user_gql_model::User;
+use crate::psql_models::post_psql_model::PostModel;
 use crate::gql_mutations::user_mutation::UserRegistrationInput;
 
-#[derive(SimpleObject, FromRow, Deserialize, Serialize)]
-pub struct User {
+#[derive(FromRow, Deserialize, Serialize)]
+pub struct UserModel {
     pub id: sqlx::types::Uuid,
     pub name: String,
     pub email: String,
@@ -18,10 +20,10 @@ pub struct User {
 }
 
 
-impl User {
-    pub async fn create(pool: &PgPool, user: &UserRegistrationInput) -> FieldResult<User> {
+impl UserModel {
+    pub async fn create(pool: &PgPool, user: &UserRegistrationInput) -> FieldResult<UserModel> {
         let r_user = sqlx::query_as!(
-            User,
+            UserModel,
             "INSERT INTO c_user(name, email, password, login_enabled, consent) VALUES ($1,$2,$3,$4,$5) RETURNING *",
             user.name,
             user.email,
@@ -31,12 +33,11 @@ impl User {
             .fetch_one(pool)
             .await?;
         Ok(r_user)
-
     }
 
-    pub async fn read_one(pool: &PgPool, id: &str) -> Result<User> {
+    pub async fn read_one(pool: &PgPool, id: &str) -> Result<UserModel> {
         let r_user = sqlx::query_as!(
-            User,
+            UserModel,
             "SELECT * FROM c_user WHERE id = $1",
             uuid::Uuid::parse_str(id)?
         )
@@ -46,15 +47,15 @@ impl User {
         Ok(r_user)
     }
 
-    pub async fn read_all(pool: &PgPool) -> Result<Vec<User>> {
-        let r_users = sqlx::query_as!(User, "SELECT * FROM c_user")
+    pub async fn read_all(pool: &PgPool) -> Result<Vec<UserModel>> {
+        let r_users = sqlx::query_as!(UserModel, "SELECT * FROM c_user")
             .fetch_all(pool)
             .await?;
 
         Ok(r_users)
     }
 
-    pub async fn update(pool: &PgPool, id: &str, name: &str) -> Result<User> {
+    pub async fn update(pool: &PgPool, id: &str, name: &str) -> Result<UserModel> {
         sqlx::query!(
             "UPDATE c_user SET name=$1 WHERE id = $2",
             name,
@@ -63,7 +64,7 @@ impl User {
             .execute(pool)
             .await?;
 
-        Ok(User::read_one(pool, id).await?)
+        Ok(UserModel::read_one(pool, id).await?)
     }
 
     pub async fn delete(pool: &PgPool, id: &str) -> Result<()> {
@@ -72,5 +73,22 @@ impl User {
             .await?;
 
         Ok(())
+    }
+
+    pub fn convert_to_gql(&self) -> User {
+        return User {
+            id: self.id,
+            name: self.name.clone(),
+            email: self.email.clone(),
+            login_enabled: self.login_enabled,
+            password: self.password.clone(),
+            created_at: self.created_at,
+            consent: self.consent,
+
+        };
+    }
+
+    pub fn convert_all_to_gql(user_models : &Vec<UserModel>) -> Vec<User>{
+        return user_models.iter().map(UserModel::convert_to_gql).collect::<Vec<User>>();;
     }
 }

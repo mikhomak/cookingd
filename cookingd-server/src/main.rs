@@ -11,10 +11,11 @@ use crate::gql_queries::Query;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use crate::gql_mutations::Mutations;
 
-mod gql_models;
+mod psql_models;
 mod gql_queries;
 mod gql_mutations;
 mod servies;
+mod gql_models;
 
 type ServiceSchema = Schema<Query, Mutations, EmptySubscription>;
 

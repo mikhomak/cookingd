@@ -1,8 +1,9 @@
-use async_graphql::{Context, FieldResult, InputObject};
+use async_graphql::{Context, FieldResult, InputObject, Pos};
 use log::error;
 use sqlx::PgPool;
+use crate::gql_models::post_gql_model::Post;
 use crate::servies::site_configuration_service::is_posting_allowed;
-use crate::gql_models::post_model::Post;
+use crate::psql_models::post_psql_model::PostModel;
 use crate::gql_mutations::PostMutations;
 #[derive(InputObject)]
 pub struct PostCreationInput {
@@ -28,10 +29,10 @@ impl PostMutations {
                     return Err(async_graphql::Error::new("Posting failed!"));
                 }
 
-                let r_created_post = Post::create(&pool, &post_input).await;
+                let r_created_post = PostModel::create(&pool, &post_input).await;
 
                 match r_created_post {
-                    Ok(created_post) => Ok(created_post),
+                    Ok(created_post) => Ok(PostModel::convert_to_gql(&created_post)),
                     Err(_) => {
                         error!("Cannot create a post due to error");
                         Err(async_graphql::Error::new("Posting failed!"))
