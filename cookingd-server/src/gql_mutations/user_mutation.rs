@@ -1,14 +1,8 @@
-use actix_web::{guard, middleware, web, App, HttpRequest, HttpServer, Responder};
 use anyhow::Result;
-use async_graphql::{Context, EmptySubscription, FieldResult, Object, Schema, ID, InputObject};
-use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
-use dotenv::dotenv;
+use async_graphql::{Context,  FieldResult,  ID, InputObject};
 use sqlx::postgres::PgPool;
-use std::env;
-use async_graphql::futures_util::future::err;
 use log::{error, info};
-
-use crate::gql_mutations::Mutations;
+use crate::gql_mutations::UserMutations;
 
 use crate::gql_models::user_model::User;
 use crate::servies::site_configuration_service::is_registration_enabled;
@@ -21,8 +15,9 @@ pub struct UserRegistrationInput {
     pub consent: bool,
 }
 
+
 #[async_graphql::Object]
-impl Mutations {
+impl UserMutations {
     async fn create_user(
         &self,
         ctx: &Context<'_>,
@@ -37,12 +32,7 @@ impl Mutations {
                     return Err(async_graphql::Error::new("Registration failed!"));
                 }
 
-                let r_created_user = User::create(&pool, &UserRegistrationInput {
-                    name: user_input.name,
-                    email: user_input.email,
-                    password: user_input.password,
-                    consent: true,
-                }).await;
+                let r_created_user = User::create(&pool, &user_input).await;
 
                 match r_created_user {
                     Ok(created_user) => Ok(created_user),

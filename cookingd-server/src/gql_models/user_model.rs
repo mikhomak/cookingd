@@ -20,7 +20,7 @@ pub struct User {
 
 impl User {
     pub async fn create(pool: &PgPool, user: &UserRegistrationInput) -> FieldResult<User> {
-        let row = sqlx::query_as!(
+        let r_user = sqlx::query_as!(
             User,
             "INSERT INTO c_user(name, email, password, login_enabled, consent) VALUES ($1,$2,$3,$4,$5) RETURNING *",
             user.name,
@@ -30,12 +30,12 @@ impl User {
             true)
             .fetch_one(pool)
             .await?;
-        Ok(row)
+        Ok(r_user)
 
     }
 
     pub async fn read_one(pool: &PgPool, id: &str) -> Result<User> {
-        let row = sqlx::query_as!(
+        let r_user = sqlx::query_as!(
             User,
             "SELECT * FROM c_user WHERE id = $1",
             uuid::Uuid::parse_str(id)?
@@ -43,15 +43,15 @@ impl User {
             .fetch_one(pool)
             .await?;
 
-        Ok(row)
+        Ok(r_user)
     }
 
     pub async fn read_all(pool: &PgPool) -> Result<Vec<User>> {
-        let rows = sqlx::query_as!(User, "SELECT * FROM c_user")
+        let r_users = sqlx::query_as!(User, "SELECT * FROM c_user")
             .fetch_all(pool)
             .await?;
 
-        Ok(rows)
+        Ok(r_users)
     }
 
     pub async fn update(pool: &PgPool, id: &str, name: &str) -> Result<User> {

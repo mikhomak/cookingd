@@ -1,4 +1,3 @@
-use async_graphql::SimpleObject;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 
@@ -20,6 +19,20 @@ pub async fn is_registration_enabled(pg_pool: &PgPool) -> bool {
 
     match r_site_configuration {
         Ok(site_configuration) => site_configuration.allow_registration,
+        Err(_) => false
+    }
+}
+
+
+pub async fn is_posting_allowed(pg_pool: &PgPool) -> bool {
+    let r_site_configuration = sqlx::query_as!(
+        SiteConfiguration,
+        "SELECT * FROM site_configuration")
+        .fetch_one(pg_pool)
+        .await;
+
+    match r_site_configuration {
+        Ok(site_configuration) => site_configuration.allow_posting,
         Err(_) => false
     }
 }

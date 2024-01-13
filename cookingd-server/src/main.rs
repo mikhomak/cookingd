@@ -45,7 +45,7 @@ async fn main() -> Result<()> {
     let port: String = env::var("PORT").expect("PORT is not set");
     let db_pool: PgPool = PgPool::connect(&database_url).await?;
 
-    let schema: ServiceSchema = Schema::build(Query, Mutations, EmptySubscription)
+    let schema: ServiceSchema = Schema::build(Query::default(), Mutations::default(), EmptySubscription)
         .data(db_pool)
         .finish();
 
