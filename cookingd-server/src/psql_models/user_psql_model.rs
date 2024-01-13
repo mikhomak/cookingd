@@ -19,7 +19,6 @@ pub struct UserModel {
     pub consent: bool,
 }
 
-
 impl UserModel {
     pub async fn create(pool: &PgPool, user: &UserRegistrationInput) -> FieldResult<UserModel> {
         let r_user = sqlx::query_as!(

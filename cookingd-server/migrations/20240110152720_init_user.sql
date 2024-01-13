@@ -44,3 +44,23 @@ CREATE TABLE "comment"
     likes      bigint      NOT NULL DEFAULT 0,
     PRIMARY KEY (id)
 );
+
+
+CREATE TABLE "list"
+(
+    id             UUID        NOT NULL DEFAULT gen_random_uuid(),
+    user_id        UUID        NOT NULL REFERENCES "c_user" (id),
+    title          VARCHAR(50) NOT NULL,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,
+    likes          bigint      NOT NULL DEFAULT 0,
+    allow_comments BOOL        NOT NULL default true,
+    allow_likes    BOOL        NOT NULL default true,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE "list_to_post"
+(
+    list_id        UUID        NOT NULL REFERENCES "list" (id),
+    post_id        UUID        NOT NULL REFERENCES "post" (id),
+    PRIMARY KEY (list_id, post_id)
+);

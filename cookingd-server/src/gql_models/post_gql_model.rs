@@ -32,7 +32,7 @@ impl Post {
         &self,
         ctx: &Context<'_>,
     ) -> FieldResult<User> {
-        let r_pool: std::result::Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
                 let r_user: Result<UserModel, _> = UserModel::read_one(pool, &self.user_id.to_string()).await;
