@@ -1,7 +1,7 @@
 use log::info;
 use actix_web::{guard, middleware, web, App, HttpRequest, HttpServer, Responder, HttpResponse};
 use anyhow::Result;
-use async_graphql::{EmptySubscription, Schema, EmptyMutation};
+use async_graphql::{EmptySubscription, Schema};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use dotenv::dotenv;
 use sqlx::postgres::PgPool;

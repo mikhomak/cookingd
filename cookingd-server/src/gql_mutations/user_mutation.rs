@@ -5,6 +5,8 @@ use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use dotenv::dotenv;
 use sqlx::postgres::PgPool;
 use std::env;
+use async_graphql::futures_util::future::err;
+use log::{error, info};
 
 use crate::gql_mutations::Mutations;
 
@@ -26,29 +28,59 @@ impl Mutations {
         ctx: &Context<'_>,
         user_input: UserRegistrationInput,
     ) -> FieldResult<User> {
-        let pool: &PgPool = ctx.data::<PgPool>().unwrap();
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
-        let is_registration_enabled: bool = is_registration_enabled(pool).await;
-        if is_registration_enabled == false {
-            return Err(async_graphql::Error::new("Registration failed!"));
+        match r_pool {
+            Ok(pool) => {
+                let is_registration_enabled: bool = is_registration_enabled(pool).await;
+                if is_registration_enabled == false {
+                    return Err(async_graphql::Error::new("Registration failed!"));
+                }
+
+                let r_created_user = User::create(&pool, &UserRegistrationInput {
+                    name: user_input.name,
+                    email: user_input.email,
+                    password: user_input.password,
+                    consent: true,
+                }).await;
+
+                match r_created_user {
+                    Ok(created_user) => Ok(created_user),
+                    Err(_) => {
+                        error!("Cannot create a user due to error");
+                        Err(async_graphql::Error::new("Registration failed!"))
+                    }
+                }
+            }
+            Err(_) => {
+                error!("Error at creating a user. Database is not set in context!");
+                Err(async_graphql::Error::new("Server error!"))
+            }
         }
-
-        let row = User::create(&pool, &UserRegistrationInput {
-            name: user_input.name,
-            email: user_input.email,
-            password: user_input.password,
-            consent: true,
-        }).await?;
-
-        Ok(row)
     }
 
     async fn delete_user(&self, ctx: &Context<'_>, id: ID) -> FieldResult<bool> {
-        let pool = ctx.data::<PgPool>().unwrap();
+        let r_pool = ctx.data::<PgPool>();
         let id = id.parse::<String>()?;
-
-        User::delete(&pool, &id).await?;
-        Ok(true)
+        match r_pool {
+            Ok(pool) => {
+                let r_delete: Result<(), _> = User::delete(&pool, &id).await;
+                match r_delete {
+                    Ok(_) => {
+                        info!("User with id {} was deleted", id);
+                        Ok(true)
+                    }
+                    Err(error) => {
+                        error!("Cannot delete a user with id {} due to error {}", id, error.to_string());
+                        Err(async_graphql::Error::new("Something failed!"))
+                    }
+                }
+            }
+            Err(_) => {
+                error!("Error at deleting a user with id {}. Database is not set in context!", id);
+                Err(async_graphql::Error::new("Server error!"))
+            }
+        }
     }
 
     async fn update_user(
@@ -57,10 +89,27 @@ impl Mutations {
         id: ID,
         name: String,
     ) -> FieldResult<User> {
-        let pool = ctx.data::<PgPool>().unwrap();
         let id = id.parse::<String>()?;
+        let r_pool = ctx.data::<PgPool>();
 
-        let row = User::update(&pool, &id, &name).await?;
-        Ok(row)
+        match r_pool {
+            Ok(pool) => {
+                let r_user: Result<User, _> = User::update(&pool, &id, &name).await;
+                match r_user {
+                    Ok(user) => {
+                        info!("User with id [{}] was updated!", id);
+                        Ok(user)
+                    }
+                    Err(error) => {
+                        error!("Cannot update a user with id {} due to error {}", id, error.to_string());
+                        Err(async_graphql::Error::new("Cannot update a user!"))
+                    }
+                }
+            }
+            Err(_) => {
+                error!("Error at updating a user with id {}. Database is not set in context!", id);
+                Err(async_graphql::Error::new("Server error!"))
+            }
+        }
     }
 }
