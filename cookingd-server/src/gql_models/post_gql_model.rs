@@ -8,10 +8,12 @@ use async_graphql::Context;
 use async_graphql::FieldResult;
 use crate::psql_models::post_psql_model::PostModel;
 use sqlx::PgPool;
+use crate::gql_models::tag_gql_model::Tag;
 use crate::psql_models::user_psql_model::UserModel;
 use crate::gql_models::user_gql_model::User;
+use crate::psql_models::tag_psql_model::TagModel;
 
-#[derive(SimpleObject, FromRow, Deserialize, Serialize)]
+#[derive(SimpleObject, Deserialize, Serialize)]
 #[graphql(complex)]
 pub struct Post {
     #[graphql(skip)]
@@ -42,6 +44,23 @@ impl Post {
                 }
             }
             Err(_) => { Err(async_graphql::Error::new("Users not found, error encountered")) }
+        }
+    }
+
+    async fn tags(
+        &self,
+        ctx: &Context<'_>,
+    ) -> FieldResult<Option<Vec<Tag>>> {
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        match r_pool {
+            Ok(pool) => {
+                let r_tag_models: Result<Vec<TagModel>, _> = TagModel::find_tags_for_post(pool, &self.id.to_string()).await;
+                match r_tag_models {
+                    Ok(tag_models) => Ok(Some(TagModel::convert_all_to_gql(&tag_models))),
+                    Err(_) => Ok(None)
+                }
+            }
+            Err(_) => { Err(async_graphql::Error::new("Tags not found, error encountered")) }
         }
     }
 }

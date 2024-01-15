@@ -60,7 +60,22 @@ CREATE TABLE "list"
 
 CREATE TABLE "list_to_post"
 (
-    list_id        UUID        NOT NULL REFERENCES "list" (id),
-    post_id        UUID        NOT NULL REFERENCES "post" (id),
+    list_id UUID NOT NULL REFERENCES "list" (id),
+    post_id UUID NOT NULL REFERENCES "post" (id),
     PRIMARY KEY (list_id, post_id)
+);
+
+CREATE TABLE "tag"
+(
+    id    UUID        NOT NULL DEFAULT gen_random_uuid(),
+    name  VARCHAR(70) NOT NULL UNIQUE,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE "tag_to_post"
+(
+    tag_id  UUID NOT NULL REFERENCES "tag" (id),
+    post_id UUID NOT NULL REFERENCES "post" (id),
+    PRIMARY KEY (tag_id, post_id)
 );

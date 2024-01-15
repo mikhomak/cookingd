@@ -9,7 +9,7 @@ use crate::psql_models::post_psql_model::PostModel;
 use sqlx::PgPool;
 use crate::gql_models::post_gql_model::Post;
 
-#[derive(SimpleObject, FromRow, Deserialize, Serialize)]
+#[derive(SimpleObject, Deserialize, Serialize)]
 #[graphql(complex)]
 pub struct User {
     pub id: sqlx::types::Uuid,
@@ -20,7 +20,6 @@ pub struct User {
     pub created_at: DateTime<Utc>,
     pub consent: bool,
 }
-
 
 #[ComplexObject]
 impl User {
