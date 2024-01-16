@@ -29,7 +29,7 @@ impl TagModel {
     }
 
 
-    pub async fn create_batch_tags(pool: &PgPool, tag_names: &Vec<String>, o_post_id: Option<&sqlx::types::Uuid>) -> FieldResult<()> {
+    pub async fn create_batch_tags(pool: &PgPool, tag_names: &Vec<String>) -> FieldResult<Vec<sqlx::types::Uuid>> {
         let mut query_builder = QueryBuilder::new("INSERT INTO tag (name) ");
 
         query_builder.push_values(tag_names, |mut b, tag_id: &String| {
@@ -40,26 +40,11 @@ impl TagModel {
         let query = query_builder.build();
 
 
-        if let Some(post_id) = o_post_id
-        {
-            let r_tag_ids = query.fetch_all(pool).await;
-            match r_tag_ids {
-                Ok(tag_ids) => {
-                    TagModel::associate_tags_to_post(pool,
-                                                     &tag_ids
-                                                         .iter()
-                                                         .map(|row| row.get::<sqlx::types::Uuid,_>("id")
-                                                         )
-                                                         .collect(),
-                                                     post_id)
-                        .await?
-                }
-                Err(error) => {
-                    Err("No tags were created!")
-                }
-            }
-        }
-        Ok(())
+        let r_tag_ids = query.fetch_all(pool).await?;
+        Ok(r_tag_ids
+            .iter()
+            .map(|row| row.get::<sqlx::types::Uuid, _>("id"))
+            .collect())
     }
 
     pub async fn associate_tags_to_post(pool: &PgPool, tag_ids: &Vec<sqlx::types::Uuid>, post_id: &sqlx::types::Uuid) -> PgQueryResult {

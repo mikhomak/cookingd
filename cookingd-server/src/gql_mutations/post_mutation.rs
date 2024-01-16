@@ -1,4 +1,4 @@
-use async_graphql::{Context, FieldResult, InputObject, Pos};
+use async_graphql::{Context, ErrorExtensions, FieldResult, InputObject, Pos};
 use log::error;
 use sqlx::PgPool;
 use crate::gql_models::post_gql_model::Post;
@@ -43,10 +43,20 @@ impl PostMutations {
                 match r_created_post {
                     Ok(created_post) => {
                         if let Some(tags) = post_input.tags {
+                            let tags = &tags
+                                .iter()
+                                .filter(|tag| tag.post_id.is_some())
+                                .collect();
+
                             let r_created_tags = TagModel::create_batch_tags(
                                 &pool,
-                                &tags.iter().map(|t| t.name.clone()).collect(),
+                                &tags.iter().filter(|tag| tag.post_id.is_none()).map(|tag| tag.name.clone()).collect(),
                                 Some(&created_post.id)).await;
+
+                            if let Ok(created_tags) = r_created_tags {
+                                tags.extend(created_tags);
+                            }
+                            TagModel::associate_tags_to_post(&pool, tags, created_post.id).await;
                         }
                         Ok(PostModel::convert_to_gql(&created_post))
                     }
