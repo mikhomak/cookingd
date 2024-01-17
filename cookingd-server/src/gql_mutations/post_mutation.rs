@@ -43,20 +43,20 @@ impl PostMutations {
                 match r_created_post {
                     Ok(created_post) => {
                         if let Some(tags) = post_input.tags {
-                            let tags = &tags
+                            let tag_uids = &mut tags
                                 .iter()
                                 .filter(|tag| tag.post_id.is_some())
-                                .collect();
+                                .map(|tag| sqlx::types::Uuid::parse_str(&<std::option::Option<std::string::String> as Clone>::clone(&tag.post_id).unwrap().clone()).unwrap())
+                                .collect::<Vec<sqlx::types::Uuid>>();
 
                             let r_created_tags = TagModel::create_batch_tags(
                                 &pool,
-                                &tags.iter().filter(|tag| tag.post_id.is_none()).map(|tag| tag.name.clone()).collect(),
-                                Some(&created_post.id)).await;
+                                &tags.iter().filter(|tag| tag.post_id.is_none()).map(|tag| tag.name.clone()).collect()).await;
 
                             if let Ok(created_tags) = r_created_tags {
-                                tags.extend(created_tags);
+                                tag_uids.extend(created_tags);
                             }
-                            TagModel::associate_tags_to_post(&pool, tags, created_post.id).await;
+                            TagModel::associate_tags_to_post(&pool, tag_uids, &created_post.id).await;
                         }
                         Ok(PostModel::convert_to_gql(&created_post))
                     }

@@ -56,7 +56,7 @@ impl TagModel {
 
         let query = query_builder.build();
 
-        query.execute(pool).await?
+        query.execute(pool).await.unwrap()
     }
 
     pub async fn find_tags_for_post(pool: &PgPool, post_id: &String) -> FieldResult<Vec<TagModel>> {
