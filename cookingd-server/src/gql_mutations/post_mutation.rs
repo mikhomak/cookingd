@@ -1,6 +1,8 @@
 use async_graphql::{Context, ErrorExtensions, FieldResult, InputObject, Pos};
+use async_graphql::futures_util::StreamExt;
 use log::error;
 use sqlx::PgPool;
+use uuid::{Error, Uuid};
 use crate::gql_models::post_gql_model::Post;
 use crate::servies::site_configuration_service::is_posting_allowed;
 use crate::psql_models::post_psql_model::PostModel;
@@ -43,10 +45,13 @@ impl PostMutations {
                 match r_created_post {
                     Ok(created_post) => {
                         if let Some(tags) = post_input.tags {
-                            let tag_uids = &mut tags
+                            let tag_uuids = &mut tags
                                 .iter()
                                 .filter(|tag| tag.post_id.is_some())
-                                .map(|tag| sqlx::types::Uuid::parse_str(&<std::option::Option<std::string::String> as Clone>::clone(&tag.post_id).unwrap().clone()).unwrap())
+                                .map(|tag| <Option<String> as Clone>::clone(&tag.post_id).unwrap())
+                                .map(|post_id| sqlx::types::Uuid::parse_str(&post_id))
+                                .filter(|r_uuid| r_uuid.is_ok())
+                                .map(|r_uuid| r_uuid.unwrap())
                                 .collect::<Vec<sqlx::types::Uuid>>();
 
                             let r_created_tags = TagModel::create_batch_tags(
@@ -54,9 +59,9 @@ impl PostMutations {
                                 &tags.iter().filter(|tag| tag.post_id.is_none()).map(|tag| tag.name.clone()).collect()).await;
 
                             if let Ok(created_tags) = r_created_tags {
-                                tag_uids.extend(created_tags);
+                                tag_uuids.extend(created_tags);
                             }
-                            TagModel::associate_tags_to_post(&pool, tag_uids, &created_post.id).await;
+                            TagModel::associate_tags_to_post(&pool, tag_uuids, &created_post.id).await;
                         }
                         Ok(PostModel::convert_to_gql(&created_post))
                     }
@@ -73,3 +78,5 @@ impl PostMutations {
         }
     }
 }
+
+

@@ -30,15 +30,21 @@ impl TagModel {
 
 
     pub async fn create_batch_tags(pool: &PgPool, tag_names: &Vec<String>) -> FieldResult<Vec<sqlx::types::Uuid>> {
-        let mut query_builder = QueryBuilder::new("INSERT INTO tag (name) ");
+        let mut query_builder = QueryBuilder::new("WITH created_tag AS (INSERT INTO tag (name) ");
 
         query_builder.push_values(tag_names, |mut b, tag_id: &String| {
             b.push_bind(tag_id);
         });
 
-        query_builder.push(" returning *");
+        query_builder.push(" ON CONFLICT DO NOTHING RETURNING *),");
+        query_builder.push(" existed_tag as (SELECT * FROM tag WHERE name IN(");
+        let mut separated = query_builder.separated(", ");
+        for tag_id in tag_names.iter() {
+            separated.push_bind(tag_id);
+        }
+        separated.push_unseparated(") ");
+        query_builder.push(") SELECT * FROM created_tag UNION ALL SELECT * FROM existed_tag");
         let query = query_builder.build();
-
 
         let r_tag_ids = query.fetch_all(pool).await?;
         Ok(r_tag_ids
@@ -53,6 +59,7 @@ impl TagModel {
         query_builder.push_values(tag_ids, |mut b, tag_id: &sqlx::types::Uuid| {
             b.push_bind(tag_id).push_bind(post_id);
         });
+        query_builder.push("ON CONFLICT DO NOTHING");
 
         let query = query_builder.build();
 
