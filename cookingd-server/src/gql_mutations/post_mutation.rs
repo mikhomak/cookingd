@@ -1,8 +1,6 @@
-use async_graphql::{Context, ErrorExtensions, FieldResult, InputObject, Pos};
-use async_graphql::futures_util::StreamExt;
+use async_graphql::{Context, FieldResult, InputObject};
 use log::error;
 use sqlx::PgPool;
-use uuid::{Error, Uuid};
 use crate::gql_models::post_gql_model::Post;
 use crate::servies::site_configuration_service::is_posting_allowed;
 use crate::psql_models::post_psql_model::PostModel;

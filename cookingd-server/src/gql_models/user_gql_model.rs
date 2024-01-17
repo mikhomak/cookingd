@@ -1,13 +1,11 @@
-use async_graphql::{ComplexObject, SimpleObject};
+use async_graphql::{ComplexObject, SimpleObject, Context, FieldResult};
 use chrono;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
-use async_graphql::Context;
-use async_graphql::FieldResult;
-use crate::psql_models::post_psql_model::PostModel;
 use sqlx::PgPool;
+
 use crate::gql_models::post_gql_model::Post;
+use crate::psql_models::post_psql_model::PostModel;
 
 #[derive(SimpleObject, Deserialize, Serialize)]
 #[graphql(complex)]

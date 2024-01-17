@@ -1,11 +1,10 @@
 use anyhow::Result;
-use async_graphql::{ComplexObject, Context, FieldResult, SimpleObject};
+use async_graphql::FieldResult;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 use chrono;
 use crate::gql_models::user_gql_model::User;
-use crate::psql_models::post_psql_model::PostModel;
 use crate::gql_mutations::user_mutation::UserRegistrationInput;
 
 #[derive(FromRow, Deserialize, Serialize)]
@@ -75,7 +74,7 @@ impl UserModel {
     }
 
     pub fn convert_to_gql(&self) -> User {
-        return User {
+        User {
             id: self.id,
             name: self.name.clone(),
             email: self.email.clone(),
@@ -83,11 +82,10 @@ impl UserModel {
             password: self.password.clone(),
             created_at: self.created_at,
             consent: self.consent,
-
-        };
+        }
     }
 
-    pub fn convert_all_to_gql(user_models : &Vec<UserModel>) -> Vec<User>{
-        return user_models.iter().map(UserModel::convert_to_gql).collect::<Vec<User>>();;
+    pub fn convert_all_to_gql(user_models: &Vec<UserModel>) -> Vec<User> {
+        user_models.iter().map(UserModel::convert_to_gql).collect::<Vec<User>>()
     }
 }

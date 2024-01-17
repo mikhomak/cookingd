@@ -1,4 +1,4 @@
-use async_graphql::{FieldResult, SimpleObject};
+use async_graphql::FieldResult;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};

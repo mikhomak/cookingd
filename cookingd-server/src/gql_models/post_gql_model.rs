@@ -1,16 +1,12 @@
-use anyhow::Error;
-use async_graphql::{ComplexObject, SimpleObject};
+use async_graphql::{ComplexObject, SimpleObject, Context, FieldResult};
 use chrono;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
-use async_graphql::Context;
-use async_graphql::FieldResult;
-use crate::psql_models::post_psql_model::PostModel;
 use sqlx::PgPool;
-use crate::gql_models::tag_gql_model::Tag;
-use crate::psql_models::user_psql_model::UserModel;
+
 use crate::gql_models::user_gql_model::User;
+use crate::psql_models::user_psql_model::UserModel;
+use crate::gql_models::tag_gql_model::Tag;
 use crate::psql_models::tag_psql_model::TagModel;
 
 #[derive(SimpleObject, Deserialize, Serialize)]

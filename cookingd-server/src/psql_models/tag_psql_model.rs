@@ -1,12 +1,8 @@
-use actix_web::web::post;
-use async_graphql::{FieldResult, SimpleObject};
-use async_graphql::futures_util::future::err;
+use async_graphql::FieldResult;
 use chrono::{DateTime, Utc};
-use log::error;
 use serde::{Deserialize, Serialize};
-use sqlx::{Error, FromRow, PgPool, QueryBuilder, Row};
-use sqlx::postgres::{PgQueryResult, PgRow};
-use crate::gql_models::post_gql_model::Post;
+use sqlx::{FromRow, PgPool, QueryBuilder, Row};
+use sqlx::postgres::PgQueryResult;
 use crate::gql_models::tag_gql_model::Tag;
 use crate::gql_mutations::post_mutation::TagCreationInput;
 
