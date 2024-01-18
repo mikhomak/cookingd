@@ -67,15 +67,15 @@ CREATE TABLE "list_to_post"
 
 CREATE TABLE "tag"
 (
-    id    UUID        NOT NULL DEFAULT gen_random_uuid(),
-    name  VARCHAR(70) NOT NULL UNIQUE,
-    created_at     TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,
-    PRIMARY KEY (id)
+    name             VARCHAR(70) NOT NULL,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,
+    user_who_created UUID,
+    PRIMARY KEY (name)
 );
 
 CREATE TABLE "tag_to_post"
 (
-    tag_id  UUID NOT NULL REFERENCES "tag" (id),
-    post_id UUID NOT NULL REFERENCES "post" (id),
-    PRIMARY KEY (tag_id, post_id)
+    tag_name VARCHAR(70) NOT NULL REFERENCES "tag" (name),
+    post_id  UUID        NOT NULL REFERENCES "post" (id),
+    PRIMARY KEY (tag_name, post_id)
 );
