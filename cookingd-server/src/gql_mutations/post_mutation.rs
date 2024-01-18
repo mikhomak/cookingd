@@ -71,7 +71,28 @@ impl PostMutations {
 
         match r_pool {
             Ok(pool) => {
-                create_and_associate_tags(&pool, &tag_input.post_id, &tag_input.tag_names);
+                create_and_associate_tags(&pool, &tag_input.post_id, &tag_input.tag_names).await?;
+                Ok(true)
+            }
+            Err(_) => {
+                error!("Error at associating tags. Database is not set in context!");
+                Err(async_graphql::Error::new("Server error!"))
+            }
+        }
+    }
+
+
+    async fn remove_tags(
+        &self,
+        ctx: &Context<'_>,
+        tag_input: TagAssignationInput,
+    ) -> FieldResult<bool> {
+        let r_pool: anyhow::Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+
+        match r_pool {
+            Ok(pool) => {
+                let post_uuid = sqlx::types::Uuid::parse_str(&tag_input.post_id).unwrap();
+                TagModel::remove_tag_association(pool, &tag_input.tag_names, &post_uuid).await;
                 Ok(true)
             }
             Err(_) => {

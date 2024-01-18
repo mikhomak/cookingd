@@ -61,6 +61,23 @@ impl TagModel {
         query.execute(pool).await.unwrap()
     }
 
+
+    pub async fn remove_tag_association(pool: &PgPool, tag_names: &Vec<String>, post_id: &sqlx::types::Uuid) -> PgQueryResult {
+        let mut query_builder = QueryBuilder::new("DELETE FROM tag_to_post WHERE post_id = ");
+        query_builder.push_bind(post_id);
+        query_builder.push(" AND tag_name IN (");
+        let mut separated = query_builder.separated(", ");
+        for tag_name in tag_names.iter() {
+            separated.push_bind(tag_name.to_lowercase());
+        }
+        separated.push_unseparated(") ");
+
+        let query = query_builder.build();
+
+        query.execute(pool).await.unwrap()
+    }
+
+
     pub async fn find_tags_for_post(pool: &PgPool, post_id: &String) -> FieldResult<Vec<TagModel>> {
         let r_posts = sqlx::query_as!(
             TagModel,
