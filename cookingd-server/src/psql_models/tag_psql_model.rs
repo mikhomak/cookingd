@@ -23,6 +23,14 @@ impl TagModel {
         Ok(tag_model)
     }
 
+    pub async fn get_all(pool: &PgPool) -> FieldResult<Vec<TagModel>> {
+        let r_tag_models = sqlx::query_as!(
+            TagModel,
+            "SELECT * FROM tag")
+            .fetch_all(pool)
+            .await?;
+        Ok(r_tag_models)
+    }
 
     pub async fn create_batch_tags(pool: &PgPool, tag_names: &Vec<String>) -> FieldResult<Vec<String>> {
         let mut query_builder = QueryBuilder::new("WITH created_tag AS (INSERT INTO tag (name) ");
