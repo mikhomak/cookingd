@@ -14,7 +14,7 @@ impl PostQuery {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_posts = PostModel::get_latest_posts(&pool).await;
+                let r_posts : FieldResult<Vec<PostModel>> = PostModel::get_latest_posts(&pool).await;
                 match r_posts {
                     Ok(posts) => Ok(PostModel::convert_all_to_gql(&posts)),
                     Err(error) => {
@@ -34,7 +34,7 @@ impl PostQuery {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_posts = PostModel::find_posts_for_user(&pool, &user_id).await;
+                let r_posts : FieldResult<Vec<PostModel>> = PostModel::find_posts_for_user(&pool, &user_id).await;
                 match r_posts {
                     Ok(posts) => Ok(PostModel::convert_all_to_gql(&posts)),
                     Err(error) => {

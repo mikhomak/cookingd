@@ -14,7 +14,7 @@ pub struct TagModel {
 
 impl TagModel {
     pub async fn create(pool: &PgPool, name: &String) -> FieldResult<TagModel> {
-        let tag_model = sqlx::query_as!(
+        let tag_model : FieldResult<TagModel> = sqlx::query_as!(
             TagModel,
             "INSERT INTO tag (name) VALUES ($1) RETURNING *",
             name.to_lowercase())
@@ -24,7 +24,7 @@ impl TagModel {
     }
 
     pub async fn get_all(pool: &PgPool) -> FieldResult<Vec<TagModel>> {
-        let r_tag_models = sqlx::query_as!(
+        let r_tag_models : FieldResult<Vec<TagModel>> = sqlx::query_as!(
             TagModel,
             "SELECT * FROM tag")
             .fetch_all(pool)
@@ -33,7 +33,7 @@ impl TagModel {
     }
 
     pub async fn create_batch_tags(pool: &PgPool, tag_names: &Vec<String>) -> FieldResult<Vec<String>> {
-        let mut query_builder = QueryBuilder::new("WITH created_tag AS (INSERT INTO tag (name) ");
+        let mut query_builder : FieldResult<Vec<String>> = QueryBuilder::new("WITH created_tag AS (INSERT INTO tag (name) ");
 
         query_builder.push_values(tag_names, |mut b, tag_id: &String| {
             b.push_bind(tag_id);
@@ -57,7 +57,7 @@ impl TagModel {
     }
 
     pub async fn associate_tags_to_post(pool: &PgPool, tag_names: &Vec<String>, post_id: &sqlx::types::Uuid) -> PgQueryResult {
-        let mut query_builder = QueryBuilder::new("INSERT INTO tag_to_post (tag_name, post_id) ");
+        let mut query_builder : PgQueryResult = QueryBuilder::new("INSERT INTO tag_to_post (tag_name, post_id) ");
 
         query_builder.push_values(tag_names, |mut b, tag_name: &String| {
             b.push_bind(tag_name).push_bind(post_id);
@@ -71,7 +71,7 @@ impl TagModel {
 
 
     pub async fn remove_tag_association(pool: &PgPool, tag_names: &Vec<String>, post_id: &sqlx::types::Uuid) -> PgQueryResult {
-        let mut query_builder = QueryBuilder::new("DELETE FROM tag_to_post WHERE post_id = ");
+        let mut query_builder : PgQueryResult = QueryBuilder::new("DELETE FROM tag_to_post WHERE post_id = ");
         query_builder.push_bind(post_id);
         query_builder.push(" AND tag_name IN (");
         let mut separated = query_builder.separated(", ");
@@ -87,7 +87,7 @@ impl TagModel {
 
 
     pub async fn find_tags_for_post(pool: &PgPool, post_id: &String) -> FieldResult<Vec<TagModel>> {
-        let r_posts = sqlx::query_as!(
+        let r_posts : FieldResult<Vec<TagModel>> = sqlx::query_as!(
             TagModel,
             "SELECT t.* FROM (tag AS t LEFT JOIN tag_to_post as t2l ON t.name = t2l.tag_name) WHERE t2l.post_id = $1",
             sqlx::types::Uuid::parse_str(post_id)?)
@@ -97,7 +97,7 @@ impl TagModel {
     }
 
     pub async fn find_tags_for_name(pool: &PgPool, name: &String) -> FieldResult<Vec<TagModel>> {
-        let r_tags = sqlx::query_as!(
+        let r_tags : FieldResult<Vec<TagModel>> = sqlx::query_as!(
             TagModel,
             "SELECT * FROM tag WHERE name LIKE $1",
             format!("%{}%", name))

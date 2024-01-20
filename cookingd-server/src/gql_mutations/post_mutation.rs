@@ -39,7 +39,7 @@ impl PostMutations {
                     return Err(async_graphql::Error::new("Posting failed!"));
                 }
 
-                let r_created_post = PostModel::create(&pool, &post_input).await;
+                let r_created_post FieldResult<PostModel>= PostModel::create(&pool, &post_input).await;
 
                 match r_created_post {
                     Ok(created_post) => {
@@ -67,7 +67,7 @@ impl PostMutations {
         ctx: &Context<'_>,
         tag_input: TagAssignationInput,
     ) -> FieldResult<bool> {
-        let r_pool: anyhow::Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
         match r_pool {
             Ok(pool) => {
@@ -87,11 +87,11 @@ impl PostMutations {
         ctx: &Context<'_>,
         tag_input: TagAssignationInput,
     ) -> FieldResult<bool> {
-        let r_pool: anyhow::Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
         match r_pool {
             Ok(pool) => {
-                let post_uuid = sqlx::types::Uuid::parse_str(&tag_input.post_id).unwrap();
+                let post_uuid : sqlx::types::Uuid= sqlx::types::Uuid::parse_str(&tag_input.post_id).unwrap();
                 TagModel::remove_tag_association(pool, &tag_input.tag_names, &post_uuid).await;
                 Ok(true)
             }
@@ -105,7 +105,7 @@ impl PostMutations {
 
 
 async fn create_and_associate_tags(pool: &PgPool, post_id: &String, tags: &Vec<String>) -> Result<(), async_graphql::Error> {
-    let r_post_uuid = Uuid::parse_str(post_id);
+    let r_post_uuid : Result<sqlx::types::Uuid, _> = Uuid::parse_str(post_id);
     match r_post_uuid {
         Ok(post_uuid) => {
             create_and_associate_tags_with_post_uuid(&pool, &post_uuid, &tags).await

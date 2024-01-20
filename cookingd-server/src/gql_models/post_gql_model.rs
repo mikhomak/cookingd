@@ -33,7 +33,7 @@ impl Post {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_user: Result<UserModel, _> = UserModel::read_one(pool, &self.user_id.to_string()).await;
+                let r_user: FieldResult<UserModel> = UserModel::read_one(pool, &self.user_id.to_string()).await;
                 match r_user {
                     Ok(user_model) => Ok(UserModel::convert_to_gql(&user_model)),
                     Err(_) => Err(async_graphql::Error::new("User not found!"))
@@ -50,7 +50,7 @@ impl Post {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_tag_models: Result<Vec<TagModel>, _> = TagModel::find_tags_for_post(pool, &self.id.to_string()).await;
+                let r_tag_models: FieldResult<Vec<TagModel>> = TagModel::find_tags_for_post(pool, &self.id.to_string()).await;
                 match r_tag_models {
                     Ok(tag_models) => Ok(Some(TagModel::convert_all_to_gql(&tag_models))),
                     Err(_) => Ok(None)

@@ -13,7 +13,7 @@ impl UserQuery {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_users = UserModel::read_all(&pool).await;
+                let r_users : FieldResult<Vec<UserModel>> = UserModel::read_all(&pool).await;
                 match r_users {
                     Ok(users) => Ok(UserModel::convert_all_to_gql(&users)),
                     Err(error) => {
@@ -33,7 +33,7 @@ impl UserQuery {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_user = UserModel::read_one(&pool, &id).await;
+                let r_user: FieldResult<UserModel> = UserModel::read_one(&pool, &id).await;
                 match r_user {
                     Ok(users) => Ok(UserModel::convert_to_gql(&users)),
                     Err(error) => {

@@ -20,7 +20,7 @@ pub struct UserModel {
 
 impl UserModel {
     pub async fn create(pool: &PgPool, user: &UserRegistrationInput) -> FieldResult<UserModel> {
-        let r_user = sqlx::query_as!(
+        let r_user : FieldResult<UserModel> = sqlx::query_as!(
             UserModel,
             "INSERT INTO c_user(name, email, password, login_enabled, consent) VALUES ($1,$2,$3,$4,$5) RETURNING *",
             user.name,
@@ -34,7 +34,7 @@ impl UserModel {
     }
 
     pub async fn read_one(pool: &PgPool, id: &str) -> Result<UserModel> {
-        let r_user = sqlx::query_as!(
+        let r_user : FieldResult<UserModel> = sqlx::query_as!(
             UserModel,
             "SELECT * FROM c_user WHERE id = $1",
             uuid::Uuid::parse_str(id)?
@@ -46,7 +46,7 @@ impl UserModel {
     }
 
     pub async fn read_all(pool: &PgPool) -> Result<Vec<UserModel>> {
-        let r_users = sqlx::query_as!(UserModel, "SELECT * FROM c_user")
+        let r_users : FieldResult<Vec<UserModel>> = sqlx::query_as!(UserModel, "SELECT * FROM c_user")
             .fetch_all(pool)
             .await?;
 
