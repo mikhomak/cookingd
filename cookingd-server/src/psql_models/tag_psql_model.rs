@@ -57,7 +57,7 @@ impl TagModel {
     }
 
     pub async fn associate_tags_to_post(pool: &PgPool, tag_names: &Vec<String>, post_id: &sqlx::types::Uuid) -> PgQueryResult {
-        let mut query_builder : PgQueryResult = QueryBuilder::new("INSERT INTO tag_to_post (tag_name, post_id) ");
+        let mut query_builder = QueryBuilder::new("INSERT INTO tag_to_post (tag_name, post_id) ");
 
         query_builder.push_values(tag_names, |mut b, tag_name: &String| {
             b.push_bind(tag_name).push_bind(post_id);
@@ -71,7 +71,7 @@ impl TagModel {
 
 
     pub async fn remove_tag_association(pool: &PgPool, tag_names: &Vec<String>, post_id: &sqlx::types::Uuid) -> PgQueryResult {
-        let mut query_builder : PgQueryResult = QueryBuilder::new("DELETE FROM tag_to_post WHERE post_id = ");
+        let mut query_builder = QueryBuilder::new("DELETE FROM tag_to_post WHERE post_id = ");
         query_builder.push_bind(post_id);
         query_builder.push(" AND tag_name IN (");
         let mut separated = query_builder.separated(", ");

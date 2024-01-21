@@ -25,6 +25,7 @@ pub struct TagAssignationInput {
 
 #[async_graphql::Object]
 impl PostMutations {
+
     async fn create_post(
         &self,
         ctx: &Context<'_>,
@@ -39,7 +40,7 @@ impl PostMutations {
                     return Err(async_graphql::Error::new("Posting failed!"));
                 }
 
-                let r_created_post FieldResult<PostModel>= PostModel::create(&pool, &post_input).await;
+                let r_created_post : FieldResult<PostModel>= PostModel::create(&pool, &post_input).await;
 
                 match r_created_post {
                     Ok(created_post) => {
@@ -102,7 +103,6 @@ impl PostMutations {
         }
     }
 }
-
 
 async fn create_and_associate_tags(pool: &PgPool, post_id: &String, tags: &Vec<String>) -> Result<(), async_graphql::Error> {
     let r_post_uuid : Result<sqlx::types::Uuid, _> = Uuid::parse_str(post_id);

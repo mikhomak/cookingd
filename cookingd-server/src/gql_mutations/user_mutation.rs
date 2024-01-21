@@ -20,6 +20,7 @@ pub struct UserRegistrationInput {
 
 #[async_graphql::Object]
 impl UserMutations {
+
     async fn create_user(
         &self,
         ctx: &Context<'_>,
