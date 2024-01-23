@@ -64,7 +64,7 @@ impl UserMutations {
                         Ok(true)
                     }
                     Err(error) => {
-                        error!("Cannot delete a user with id {} due to error {}", id, error.to_string());
+                        error!("Cannot delete a user with id {} due to error {}", id, error.message);
                         Err(async_graphql::Error::new("Something failed!"))
                     }
                 }
@@ -94,7 +94,7 @@ impl UserMutations {
                         Ok(UserModel::convert_to_gql(&user))
                     }
                     Err(error) => {
-                        error!("Cannot update a user with id {} due to error {}", id, error.to_string());
+                        error!("Cannot update a user with id {} due to error {}", id, error.message);
                         Err(async_graphql::Error::new("Cannot update a user!"))
                     }
                 }

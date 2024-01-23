@@ -18,7 +18,7 @@ impl PostQuery {
                 match r_posts {
                     Ok(posts) => Ok(PostModel::convert_all_to_gql(&posts)),
                     Err(error) => {
-                        error!("Posts couldn't be fetched from the db due to error");
+                        error!("Posts couldn't be fetched from the db due to error [{}]", error.message);
                         Err(async_graphql::Error::new("Posts not found, error encountered"))
                     }
                 }
@@ -38,7 +38,29 @@ impl PostQuery {
                 match r_posts {
                     Ok(posts) => Ok(PostModel::convert_all_to_gql(&posts)),
                     Err(error) => {
-                        error!("Posts for user with id {} not found due to error", user_id);
+                        error!("Posts for user with id [{}] not found due to error [{}]", user_id, error.message);
+                        Err(async_graphql::Error::new("Posts not found, error encountered"))
+                    }
+                }
+            }
+            Err(_) => {
+                error!("Database is not set up in the context");
+                Err(async_graphql::Error::new("Server Error!"))
+            }
+        }
+    }
+
+
+
+    async fn post_for_id<'a>(&self, ctx: &'a Context<'_>, post_id: String) -> FieldResult<Post> {
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        match r_pool {
+            Ok(pool) => {
+                let r_post: FieldResult<PostModel> = PostModel::find_post_for_id(&pool, &post_id).await;
+                match r_post {
+                    Ok(post) => Ok(PostModel::convert_to_gql(&post)),
+                    Err(error) => {
+                        error!("Post for id [{}] not found due to error [{}]", post_id, error.message);
                         Err(async_graphql::Error::new("Posts not found, error encountered"))
                     }
                 }

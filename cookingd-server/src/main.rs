@@ -31,6 +31,7 @@ async fn ping(_req: HttpRequest) -> impl Responder {
     )
 }
 
+
 async fn index_playground() -> HttpResponse {
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")

@@ -17,7 +17,7 @@ impl UserQuery {
                 match r_users {
                     Ok(users) => Ok(UserModel::convert_all_to_gql(&users)),
                     Err(error) => {
-                        error!("Users couldn't be fetched from the db due to error {}", error.to_string());
+                        error!("Users couldn't be fetched from the db due to error {}", error.message);
                         Err(async_graphql::Error::new("Users not found, error encountered"))
                     }
                 }
@@ -37,7 +37,7 @@ impl UserQuery {
                 match r_user {
                     Ok(users) => Ok(UserModel::convert_to_gql(&users)),
                     Err(error) => {
-                        error!("User with id {} not found due to error {}", id, error.to_string());
+                        error!("User with id {} not found due to error {}", id, error.message);
                         Err(async_graphql::Error::new("User not found, error encountered"))
                     }
                 }

@@ -1,12 +1,10 @@
-use crate::gql_queries::{PostQuery, TagQuery};
+use crate::gql_queries::TagQuery;
 use async_graphql::Object;
 use async_graphql::Context;
 use sqlx::PgPool;
 use async_graphql::FieldResult;
 use log::error;
-use crate::gql_models::post_gql_model::Post;
 use crate::gql_models::tag_gql_model::Tag;
-use crate::psql_models::post_psql_model::PostModel;
 use crate::psql_models::tag_psql_model::TagModel;
 
 

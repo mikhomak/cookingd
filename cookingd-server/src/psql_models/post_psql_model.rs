@@ -20,7 +20,7 @@ pub struct PostModel {
 
 impl PostModel {
     pub async fn get_latest_posts(pool: &PgPool) -> FieldResult<Vec<PostModel>> {
-        let r_posts: FieldResult<Vec<PostModel>> = sqlx::query_as!(PostModel, "SELECT * FROM post ORDER BY created_at DESC")
+        let r_posts: Vec<PostModel> = sqlx::query_as!(PostModel, "SELECT * FROM post ORDER BY created_at DESC")
             .fetch_all(pool)
             .await?;
         Ok(r_posts)
@@ -28,7 +28,7 @@ impl PostModel {
 
 
     pub async fn create(pool: &PgPool, post_input: &PostCreationInput) -> FieldResult<PostModel> {
-        let r_post : FieldResult<PostModel> = sqlx::query_as!(
+        let r_post : PostModel = sqlx::query_as!(
             PostModel,
             "INSERT INTO post ( user_id, title, text, rating) VALUES ($1, $2, $3, $4) RETURNING *",
             sqlx::types::Uuid::parse_str(&post_input.user_id)?,
@@ -42,7 +42,7 @@ impl PostModel {
 
 
     pub async fn find_posts_for_user(pool: &PgPool, user_id: &String) -> FieldResult<Vec<PostModel>> {
-        let r_posts : FieldResult<Vec<PostModel>> = sqlx::query_as!(
+        let r_posts : Vec<PostModel> = sqlx::query_as!(
             PostModel,
             "SELECT * FROM post WHERE user_id = $1", sqlx::types::Uuid::parse_str(user_id)?)
             .fetch_all(pool)
@@ -51,7 +51,7 @@ impl PostModel {
     }
 
     pub async fn find_post_for_id(pool: &PgPool, post_id: &String) -> FieldResult<PostModel> {
-        let r_post : FieldResult<PostModel> = sqlx::query_as!(
+        let r_post : PostModel = sqlx::query_as!(
             PostModel,
             "SELECT * FROM post WHERE id = $1", sqlx::types::Uuid::parse_str(post_id)?)
             .fetch_one(pool)

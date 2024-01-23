@@ -1,6 +1,6 @@
 use async_graphql::{Context, FieldResult, InputObject};
 use log::error;
-use sqlx::{Error, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 use crate::gql_models::post_gql_model::Post;
 use crate::servies::site_configuration_service::is_posting_allowed;
@@ -45,7 +45,7 @@ impl PostMutations {
                 match r_created_post {
                     Ok(created_post) => {
                         if let Some(tags) = post_input.tags {
-                            create_and_associate_tags_with_post_uuid(&pool, &created_post.id, &tags).await;
+                            let _ = create_and_associate_tags_with_post_uuid(&pool, &created_post.id, &tags).await;
                         }
                         Ok(PostModel::convert_to_gql(&created_post))
                     }

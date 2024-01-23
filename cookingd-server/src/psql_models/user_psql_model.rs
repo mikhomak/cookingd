@@ -1,4 +1,3 @@
-use anyhow::Result;
 use async_graphql::FieldResult;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -20,7 +19,7 @@ pub struct UserModel {
 
 impl UserModel {
     pub async fn create(pool: &PgPool, user: &UserRegistrationInput) -> FieldResult<UserModel> {
-        let r_user : FieldResult<UserModel> = sqlx::query_as!(
+        let r_user : UserModel = sqlx::query_as!(
             UserModel,
             "INSERT INTO c_user(name, email, password, login_enabled, consent) VALUES ($1,$2,$3,$4,$5) RETURNING *",
             user.name,
@@ -33,8 +32,8 @@ impl UserModel {
         Ok(r_user)
     }
 
-    pub async fn read_one(pool: &PgPool, id: &str) -> Result<UserModel> {
-        let r_user : FieldResult<UserModel> = sqlx::query_as!(
+    pub async fn read_one(pool: &PgPool, id: &str) -> FieldResult<UserModel> {
+        let r_user : UserModel = sqlx::query_as!(
             UserModel,
             "SELECT * FROM c_user WHERE id = $1",
             uuid::Uuid::parse_str(id)?
@@ -45,15 +44,15 @@ impl UserModel {
         Ok(r_user)
     }
 
-    pub async fn read_all(pool: &PgPool) -> Result<Vec<UserModel>> {
-        let r_users : FieldResult<Vec<UserModel>> = sqlx::query_as!(UserModel, "SELECT * FROM c_user")
+    pub async fn read_all(pool: &PgPool) -> FieldResult<Vec<UserModel>> {
+        let r_users : Vec<UserModel> = sqlx::query_as!(UserModel, "SELECT * FROM c_user")
             .fetch_all(pool)
             .await?;
 
         Ok(r_users)
     }
 
-    pub async fn update(pool: &PgPool, id: &str, name: &str) -> Result<UserModel> {
+    pub async fn update(pool: &PgPool, id: &str, name: &str) -> FieldResult<UserModel> {
         sqlx::query!(
             "UPDATE c_user SET name=$1 WHERE id = $2",
             name,
@@ -65,7 +64,7 @@ impl UserModel {
         Ok(UserModel::read_one(pool, id).await?)
     }
 
-    pub async fn delete(pool: &PgPool, id: &str) -> Result<()> {
+    pub async fn delete(pool: &PgPool, id: &str) -> FieldResult<()> {
         sqlx::query!("DELETE FROM c_user WHERE id = $1", uuid::Uuid::parse_str(id)?)
             .execute(pool)
             .await?;
