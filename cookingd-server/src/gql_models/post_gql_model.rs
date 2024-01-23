@@ -16,6 +16,7 @@ pub struct Post {
     pub user_id: sqlx::types::Uuid,
     pub id: sqlx::types::Uuid,
     pub title: String,
+    pub short_text: Option<String>,
     pub text: Option<String>,
     pub likes: i64,
     pub rating: f64,

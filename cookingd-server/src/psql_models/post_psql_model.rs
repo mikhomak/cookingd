@@ -63,6 +63,7 @@ impl PostModel {
         return Post {
             id: self.id,
             title: self.title.clone(),
+            short_text: self.text.clone(),
             text: self.text.clone(),
             likes: self.likes,
             rating: self.rating,

@@ -1,4 +1,4 @@
-use async_graphql::{Context, FieldResult, InputObject};
+use async_graphql::{Context, FieldResult, InputObject, Upload};
 use log::error;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -15,6 +15,8 @@ pub struct PostCreationInput {
     pub text: String,
     pub rating: Option<f64>,
     pub tags: Option<Vec<String>>,
+    pub main_image: Option<Upload>,
+    pub other_images: Option<Vec<Upload>>
 }
 
 #[derive(InputObject)]

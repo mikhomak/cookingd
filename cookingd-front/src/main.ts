@@ -1,11 +1,27 @@
 import './assets/main.css'
 
-import { createApp } from 'vue'
+import { createApp, h, provide } from 'vue'
 import App from './App.vue'
 import router from './router'
+import { ApolloClient, InMemoryCache } from '@apollo/client/core'
+import { DefaultApolloClient } from '@vue/apollo-composable'
 
-const app = createApp(App)
+const cache = new InMemoryCache()
 
-app.use(router)
+const apolloClient = new ApolloClient({
+  cache,
+  uri: 'http://localhost:8080/',
+})
 
-app.mount('#app')
+
+const app = createApp({
+    setup () {
+      provide(DefaultApolloClient, apolloClient)
+    },
+  
+    render: () => h(App),
+  })
+
+  app.use(router)
+  
+  app.mount('#app');

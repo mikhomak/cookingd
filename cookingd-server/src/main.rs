@@ -7,8 +7,10 @@ use dotenv::dotenv;
 use sqlx::postgres::PgPool;
 use std::env;
 use web::Data;
-use crate::gql_queries::Query;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
+use actix_cors::Cors;
+
+use crate::gql_queries::Query;
 use crate::gql_mutations::Mutations;
 
 mod psql_models;
@@ -52,9 +54,20 @@ async fn main() -> Result<()> {
         .finish();
 
     let server = HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:5173")
+            .allowed_origin_fn(|origin, _req_head| {
+                origin.as_bytes().ends_with(b".rust-lang.org")
+            })
+            .allowed_methods(vec!["GET", "POST"])
+            .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+            .allowed_header(http::header::CONTENT_TYPE)
+            .max_age(3600);
+
         App::new()
             .app_data(Data::new(schema.clone()))
             .wrap(middleware::Logger::default())
+            .wrap(cors)
             .service(web::resource("/").guard(guard::Post()).to(index))
             .service(web::resource("/playground").guard(guard::Get()).to(index_playground))
             .route("/ping", web::get().to(ping))
