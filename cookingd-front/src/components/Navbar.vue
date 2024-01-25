@@ -4,13 +4,21 @@ import { RouterLink } from 'vue-router'
 </script>
 
 <template>
-  <ul>
-    <li><RouterLink to="/">Home</RouterLink></li>
-    <li><RouterLink to="/my-account">My Account</RouterLink></li>
-    <li><RouterLink to="/About">About</RouterLink></li>
-  </ul>
+  <nav>
+    <h3>Cookingd</h3>
+    <RouterLink to="/">Home</RouterLink>
+    <RouterLink to="/my-account">My Account</RouterLink>
+    <RouterLink to="/About">About</RouterLink>
+    </nav>
 </template>
 
 <style scoped>
-
+nav{
+  padding-top: 40px;
+  text-align: center;
+  padding-bottom: 20px;
+}
+a{
+  padding-left: 10px;
+}
 </style>

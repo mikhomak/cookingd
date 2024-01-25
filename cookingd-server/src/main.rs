@@ -55,7 +55,7 @@ async fn main() -> Result<()> {
 
     let server = HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:5173")
+            .allowed_origin("http://127.0.0.1:5173")
             .allowed_origin_fn(|origin, _req_head| {
                 origin.as_bytes().ends_with(b".rust-lang.org")
             })

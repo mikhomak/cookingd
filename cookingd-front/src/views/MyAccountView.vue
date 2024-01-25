@@ -23,10 +23,12 @@ const CHARACTERS_QUERY = gql`
 const { result, loading, error } = useQuery(CHARACTERS_QUERY);
 </script>
 <template>
-  <main>
-    <h2>Homepage</h2>
-      <li v-if="!loading" v-for="post in result.latestPosts" style=" list-style-type: none;">
-        <ShortPost :post="post" />
-      </li>
-  </main>
+    <main>
+        <h2>Homepage</h2>
+        <div v-if="!loading">
+            <li v-for="post in result.latestPosts" style=" list-style-type: none;">
+                <ShortPost :post="post" />
+            </li>
+        </div>
+    </main>
 </template>

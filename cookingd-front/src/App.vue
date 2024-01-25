@@ -1,30 +1,23 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
 import NavBar from '@/components/Navbar.vue'
 
-import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client/core'
-
-const httpLink = createHttpLink({
-  uri: 'http://localhost:8080/',
-})
-
-const cache = new InMemoryCache()
-
-const apolloClient = new ApolloClient({
-  link: httpLink,
-  cache,
-})
 
 </script>
 
 <template>
+  <div style="
+   display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column; 
+  ">
   <header>
     <NavBar/>
   </header>
-
   <RouterView />
+  </div>
 </template>
 
 <style scoped>
-
 </style>
