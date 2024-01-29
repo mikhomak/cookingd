@@ -5,7 +5,12 @@ const props = defineProps({
 });
 </script>
 <template>
-    <div v-if="tag">
+    <div v-if="tag" style="
+        background-color: khaki; 
+        width: fit-content;
+        padding: 3px;
+        border: 1px solid black;
+        ">
         {{ tag.name }}
     </div>
 </template>

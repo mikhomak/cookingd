@@ -9,16 +9,21 @@ import { RouterLink } from 'vue-router'
     <RouterLink to="/">Home</RouterLink>
     <RouterLink to="/my-account">My Account</RouterLink>
     <RouterLink to="/About">About</RouterLink>
-    </nav>
+  </nav>
+  <nav style="padding-top: 0;">
+    <RouterLink to="/">New post</RouterLink>
+    <RouterLink to="/">Logout</RouterLink>
+  </nav>
 </template>
 
 <style scoped>
-nav{
+nav {
   padding-top: 40px;
   text-align: center;
   padding-bottom: 20px;
 }
-a{
+
+a {
   padding-left: 10px;
 }
 </style>

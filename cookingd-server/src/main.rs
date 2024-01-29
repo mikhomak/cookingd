@@ -9,6 +9,7 @@ use std::env;
 use web::Data;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use actix_cors::Cors;
+use crate::auth::index_token;
 
 use crate::gql_queries::Query;
 use crate::gql_mutations::Mutations;
@@ -18,10 +19,11 @@ mod gql_queries;
 mod gql_mutations;
 mod servies;
 mod gql_models;
+mod auth;
+mod guards;
+pub type CookingSchema = Schema<Query, Mutations, EmptySubscription>;
 
-type ServiceSchema = Schema<Query, Mutations, EmptySubscription>;
-
-async fn index(schema: Data<ServiceSchema>, req: GraphQLRequest) -> GraphQLResponse {
+async fn index(schema: Data<CookingSchema>, req: GraphQLRequest) -> GraphQLResponse {
     schema.execute(req.into_inner()).await.into()
 }
 
@@ -33,12 +35,12 @@ async fn ping(_req: HttpRequest) -> impl Responder {
     )
 }
 
-
 async fn index_playground() -> HttpResponse {
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(playground_source(GraphQLPlaygroundConfig::new("/")))
 }
+
 
 #[actix_web::main]
 async fn main() -> Result<()> {
@@ -49,16 +51,13 @@ async fn main() -> Result<()> {
     let port: String = env::var("PORT").expect("PORT is not set");
     let db_pool: PgPool = PgPool::connect(&database_url).await?;
 
-    let schema: ServiceSchema = Schema::build(Query::default(), Mutations::default(), EmptySubscription)
+    let schema: CookingSchema = Schema::build(Query::default(), Mutations::default(), EmptySubscription)
         .data(db_pool)
         .finish();
 
     let server = HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin("http://127.0.0.1:5173")
-            .allowed_origin_fn(|origin, _req_head| {
-                origin.as_bytes().ends_with(b".rust-lang.org")
-            })
             .allowed_methods(vec!["GET", "POST"])
             .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
             .allowed_header(http::header::CONTENT_TYPE)
@@ -68,6 +67,7 @@ async fn main() -> Result<()> {
             .app_data(Data::new(schema.clone()))
             .wrap(middleware::Logger::default())
             .wrap(cors)
+            .service(web::resource("/").guard(guard::Post()).to(index_token))
             .service(web::resource("/").guard(guard::Post()).to(index))
             .service(web::resource("/playground").guard(guard::Get()).to(index_playground))
             .route("/ping", web::get().to(ping))

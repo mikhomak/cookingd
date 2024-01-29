@@ -7,7 +7,8 @@ use crate::servies::site_configuration_service::is_posting_allowed;
 use crate::psql_models::post_psql_model::PostModel;
 use crate::gql_mutations::PostMutations;
 use crate::psql_models::tag_psql_model::TagModel;
-
+use crate::guards::role::RoleGuard;
+use crate::guards::role::Role;
 #[derive(InputObject)]
 pub struct PostCreationInput {
     pub user_id: String,
@@ -28,12 +29,13 @@ pub struct TagAssignationInput {
 #[async_graphql::Object]
 impl PostMutations {
 
+    #[graphql(guard = "RoleGuard::new(Role::User)")]
     async fn create_post(
         &self,
         ctx: &Context<'_>,
         post_input: PostCreationInput,
     ) -> FieldResult<Post> {
-        let r_pool: anyhow::Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
         match r_pool {
             Ok(pool) => {

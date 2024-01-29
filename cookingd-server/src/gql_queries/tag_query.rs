@@ -6,10 +6,12 @@ use async_graphql::FieldResult;
 use log::error;
 use crate::gql_models::tag_gql_model::Tag;
 use crate::psql_models::tag_psql_model::TagModel;
-
+use crate::guards::role::RoleGuard;
+use crate::guards::role::Role;
 
 #[Object(extends)]
 impl TagQuery {
+    #[graphql(guard = "RoleGuard::new(Role::User)")]
     async fn all_tags<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<Tag>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
