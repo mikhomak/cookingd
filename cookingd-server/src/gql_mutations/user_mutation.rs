@@ -5,7 +5,7 @@ use log::{error, info};
 use crate::gql_mutations::UserMutations;
 
 use crate::psql_models::user_psql_model::UserModel;
-use crate::servies::site_configuration_service::is_registration_enabled;
+use crate::services::site_configuration_service::is_registration_enabled;
 use crate::gql_models::user_gql_model::User;
 
 

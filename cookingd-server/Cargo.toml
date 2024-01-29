@@ -15,5 +15,6 @@ serde = "1.0.136"
 dotenv = "0.15.0"
 sqlx = { version = "0.7.3", features = [ "uuid", "postgres",  "macros", "chrono", "runtime-async-std"] }
 uuid = { version = "1.6.1", features = ["serde", "v4"] }
-http = { version = "0.2.11", features = [] }
+http = { version = "1.0.0", features = [] }
 async-trait = "0.1.77"
+jsonwebtoken = "9.2.0"

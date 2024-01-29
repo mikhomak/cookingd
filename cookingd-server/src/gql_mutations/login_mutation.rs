@@ -2,9 +2,8 @@ use async_graphql::{Context, FieldResult, InputObject};
 use http::header::SET_COOKIE;
 use log::error;
 use sqlx::PgPool;
-use crate::gql_models::post_gql_model::Post;
-use crate::gql_mutations::{LoginMutations, PostMutations};
-use crate::gql_mutations::post_mutation::PostCreationInput;
+use crate::auth::create_token;
+use crate::gql_mutations::LoginMutations;
 use crate::psql_models::user_psql_model::UserModel;
 use crate::guards::role::RoleGuard;
 use crate::guards::role::Role;
@@ -22,7 +21,7 @@ impl LoginMutations {
         &self,
         ctx: &Context<'_>,
         login_input: LoginInput,
-    ) -> FieldResult<(bool)> {
+    ) -> FieldResult<String> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
         match r_pool {
@@ -30,8 +29,18 @@ impl LoginMutations {
                 let r_user_model: Result<UserModel, _> = UserModel::read_one(pool, &login_input.email).await;
                 match r_user_model {
                     Ok(user) => {
-                        ctx.insert_http_header(SET_COOKIE.as_str(), "login=keke");
-                        Ok((true))
+                        let r_token : Result<String, jsonwebtoken::errors::Error> = create_token(&user.email);
+                        match r_token
+                        {
+                            Ok(token) => {
+                                ctx.insert_http_header(SET_COOKIE.as_str(), format!("login={}", token));
+                                Ok(token)
+                            },
+                            Err(error)=>{
+                                error!("Cannot create a token for the user with id {} due to error {}", login_input.email.clone(), error.to_string());
+                                Err(async_graphql::Error::new("Cannot create a token!"))
+                            }
+                        }
                     }
                     Err(error) => {
                         error!("Cannot login a user with id {} due to error {}", login_input.email, error.message);

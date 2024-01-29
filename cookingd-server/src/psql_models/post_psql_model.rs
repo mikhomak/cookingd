@@ -27,11 +27,11 @@ impl PostModel {
     }
 
 
-    pub async fn create(pool: &PgPool, post_input: &PostCreationInput) -> FieldResult<PostModel> {
+    pub async fn create(pool: &PgPool, post_input: &PostCreationInput, user_id: &str) -> FieldResult<PostModel> {
         let r_post : PostModel = sqlx::query_as!(
             PostModel,
             "INSERT INTO post ( user_id, title, text, rating) VALUES ($1, $2, $3, $4) RETURNING *",
-            sqlx::types::Uuid::parse_str(&post_input.user_id)?,
+            sqlx::types::Uuid::parse_str(user_id)?,
             post_input.title,
             post_input.text,
             post_input.rating)

@@ -9,15 +9,15 @@ use std::env;
 use web::Data;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use actix_cors::Cors;
-use crate::auth::index_token;
 
 use crate::gql_queries::Query;
+use crate::auth::index_token;
 use crate::gql_mutations::Mutations;
 
 mod psql_models;
 mod gql_queries;
 mod gql_mutations;
-mod servies;
+mod services;
 mod gql_models;
 mod auth;
 mod guards;
@@ -59,8 +59,8 @@ async fn main() -> Result<()> {
         let cors = Cors::default()
             .allowed_origin("http://127.0.0.1:5173")
             .allowed_methods(vec!["GET", "POST"])
-            .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
-            .allowed_header(http::header::CONTENT_TYPE)
+            .allowed_headers(vec![http::header::AUTHORIZATION.to_string(), http::header::ACCEPT.to_string()])
+            .allowed_header(http::header::CONTENT_TYPE.to_string())
             .max_age(3600);
 
         App::new()

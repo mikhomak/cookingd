@@ -3,21 +3,21 @@ use log::error;
 use sqlx::PgPool;
 use uuid::Uuid;
 use crate::gql_models::post_gql_model::Post;
-use crate::servies::site_configuration_service::is_posting_allowed;
+use crate::services::site_configuration_service::is_posting_allowed;
 use crate::psql_models::post_psql_model::PostModel;
 use crate::gql_mutations::PostMutations;
 use crate::psql_models::tag_psql_model::TagModel;
 use crate::guards::role::RoleGuard;
 use crate::guards::role::Role;
+use crate::auth::CookingdClaims;
 #[derive(InputObject)]
 pub struct PostCreationInput {
-    pub user_id: String,
     pub title: String,
     pub text: String,
     pub rating: Option<f64>,
     pub tags: Option<Vec<String>>,
     pub main_image: Option<Upload>,
-    pub other_images: Option<Vec<Upload>>
+    pub other_images: Option<Vec<Upload>>,
 }
 
 #[derive(InputObject)]
@@ -28,7 +28,6 @@ pub struct TagAssignationInput {
 
 #[async_graphql::Object]
 impl PostMutations {
-
     #[graphql(guard = "RoleGuard::new(Role::User)")]
     async fn create_post(
         &self,
@@ -44,18 +43,27 @@ impl PostMutations {
                     return Err(async_graphql::Error::new("Posting failed!"));
                 }
 
-                let r_created_post : FieldResult<PostModel>= PostModel::create(&pool, &post_input).await;
+                let r_user = ctx.data::<CookingdClaims>();
+                match r_user {
+                    Ok(user_claims) => {
+                        let r_created_post: FieldResult<PostModel> = PostModel::create(&pool, &post_input, &user_claims.id).await;
 
-                match r_created_post {
-                    Ok(created_post) => {
-                        if let Some(tags) = post_input.tags {
-                            let _ = create_and_associate_tags_with_post_uuid(&pool, &created_post.id, &tags).await;
+                        match r_created_post {
+                            Ok(created_post) => {
+                                if let Some(tags) = post_input.tags {
+                                    let _ = create_and_associate_tags_with_post_uuid(&pool, &created_post.id, &tags).await;
+                                }
+                                Ok(PostModel::convert_to_gql(&created_post))
+                            }
+                            Err(_) => {
+                                error!("Cannot create a post due to error");
+                                Err(async_graphql::Error::new("Posting failed!"))
+                            }
                         }
-                        Ok(PostModel::convert_to_gql(&created_post))
                     }
                     Err(_) => {
-                        error!("Cannot create a post due to error");
-                        Err(async_graphql::Error::new("Posting failed!"))
+                        error!("Cannot create a post due to the user not being present in the context");
+                        Err(async_graphql::Error::new("Posting failed! Bad user"))
                     }
                 }
             }
@@ -96,7 +104,7 @@ impl PostMutations {
 
         match r_pool {
             Ok(pool) => {
-                let post_uuid : sqlx::types::Uuid= sqlx::types::Uuid::parse_str(&tag_input.post_id).unwrap();
+                let post_uuid: sqlx::types::Uuid = sqlx::types::Uuid::parse_str(&tag_input.post_id).unwrap();
                 TagModel::remove_tag_association(pool, &tag_input.tag_names, &post_uuid).await;
                 Ok(true)
             }
@@ -109,7 +117,7 @@ impl PostMutations {
 }
 
 async fn create_and_associate_tags(pool: &PgPool, post_id: &String, tags: &Vec<String>) -> Result<(), async_graphql::Error> {
-    let r_post_uuid : Result<sqlx::types::Uuid, _> = Uuid::parse_str(post_id);
+    let r_post_uuid: Result<Uuid, _> = Uuid::parse_str(post_id);
     match r_post_uuid {
         Ok(post_uuid) => {
             create_and_associate_tags_with_post_uuid(&pool, &post_uuid, &tags).await
