@@ -11,7 +11,7 @@ CREATE TABLE "c_user"
 (
     id            UUID         NOT NULL DEFAULT gen_random_uuid(),
     name          VARCHAR(50)  NOT NULL,
-    email         VARCHAR(254) NOT NULL,
+    email         VARCHAR(254) NOT NULL UNIQUE,
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT 'NOW'::timestamptz,
     password      VARCHAR(50)  NOT NULL,
     login_enabled bool         NOT NULL DEFAULT TRUE,

@@ -44,6 +44,18 @@ impl UserModel {
         Ok(r_user)
     }
 
+
+    pub async fn find_for_email(pool: &PgPool, email: &str) -> FieldResult<UserModel> {
+        let r_user : UserModel = sqlx::query_as!(
+            UserModel,
+            "SELECT * FROM c_user WHERE email = $1",
+            email
+        )
+            .fetch_one(pool)
+            .await?;
+
+        Ok(r_user)
+    }
     pub async fn read_all(pool: &PgPool) -> FieldResult<Vec<UserModel>> {
         let r_users : Vec<UserModel> = sqlx::query_as!(UserModel, "SELECT * FROM c_user")
             .fetch_all(pool)
