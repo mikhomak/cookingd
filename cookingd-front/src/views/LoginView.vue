@@ -1,57 +1,76 @@
 <script setup lang="ts">
+import { useUserStore } from '@/stores/useUserStore';
 import { useMutation } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
+import { ref } from 'vue';
 
-
-const { mutate: login, onDone , onError} = useMutation(gql`
+const LOGIN_MUTATION = gql`
 mutation login($input: LoginInput!){
-  login(loginInput: $input)
-}
-`, { 
-    variables: {
-        input: {
-            email: 'kaki',
-            password: 'poopi'
-        }
+  login(loginInput: $input){
+    token
+    user {
+        id
     }
-})
+  }
+}
+`;
+
+const userStore = useUserStore();
+const email = ref('');
+const password = ref('');
+
+const { mutate: login, onDone, onError, loading, error } = useMutation(LOGIN_MUTATION,
+    () => ({
+        variables: {
+            input: {
+                email: email.value,
+                password: password.value
+            }
+        },
+    })
+)
 
 onDone((data) => {
-    console.log(data);
+    userStore.isLoggedIn = true;
+    userStore.token = data.data.token;
+    userStore.user = data.data.user;
 })
-onError((data)=>{
-    console.log("error")
-    console.log(data.clientErrors)
-    console.log(data.extraInfo)
-    console.log(data.graphQLErrors)
-    console.log(data.message)
-    console.log(data.name)
-    console.log(data.protocolErrors)
+
+onError(errors => {
+    userStore.isLoggedIn = false;
+    userStore.token = null;
+    userStore.user = null;
 })
 
 </script>
 <template>
     <main>
         <h2>Login</h2>
-        <div>
-            <form>
-                <div>
-                    <label for="input_email">email</label>
-                    <br />
-                    <input id="input_email" type="email" />
-                </div>
+        <div v-if="!loading">
 
-                <div>
-                    <label for="input_password">password</label>
-                    <br />
-                    <input id="input_password" type="text" />
-                </div>
+            <h3 v-if="error" style="color: red">{{ error.message }}</h3>
 
-                <div>
-                    <button @click="login()" id="btn_submit">Submit</button>
-                </div>
-            </form>
+            <div>
+                <label for="input_email">email</label>
+                <br />
+                <input id="input_email" type="email" v-model="email" />
+            </div>
+
+            <div>
+                <label for="input_password">password</label>
+                <br />
+                <input id="input_password" type="text" v-model="password" />
+            </div>
+
+            <div>
+                <button @click="login()" id="btn_submit">Submit</button>
+            </div>
         </div>
+
+        <div v-else>
+            loading...
+        </div>
+
     </main>
 </template>
 

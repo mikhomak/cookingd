@@ -12,6 +12,7 @@ const cache = new InMemoryCache()
 const apolloClient = new ApolloClient({
   cache,
   uri: 'http://localhost:8080/',
+  connectToDevTools: true,
 });
 
 const pinia = createPinia()
