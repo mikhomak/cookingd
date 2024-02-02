@@ -3,7 +3,7 @@ import gql from 'graphql-tag'
 import { useQuery } from '@vue/apollo-composable'
 import ShortPost from '@/components/posts/ShortPost.vue'
 
-const CHARACTERS_QUERY = gql`
+const Latest_Post_Query = gql`
   query{
   latestPosts{
     id
@@ -20,7 +20,7 @@ const CHARACTERS_QUERY = gql`
 }
 `
 
-const { result, loading, error } = useQuery(CHARACTERS_QUERY);
+const { result, loading, error } = useQuery(Latest_Post_Query);
 </script>
 <template>
     <main>
@@ -29,6 +29,9 @@ const { result, loading, error } = useQuery(CHARACTERS_QUERY);
             <li v-for="post in result.latestPosts" style=" list-style-type: none;">
                 <ShortPost :post="post" />
             </li>
+        </div>
+        <div v-else-if="error">
+            <h3>Oopsie, there was an error!</h3>
         </div>
     </main>
 </template>

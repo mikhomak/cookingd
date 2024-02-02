@@ -18,8 +18,31 @@ const router = createRouter({
       path: '/my-account',
       name: 'my account',
       component: () => import('../views/AboutView.vue')
+    },
+    {
+      path: '/register',
+      name: 'registration',
+      component: () => import('../views/RegistrationView.vue')
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue')
     }
   ]
-})
+});
+
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      next();
+    } else {
+      next('/login');
+    }
+  } else {
+    next();
+  }
+});
 
 export default router

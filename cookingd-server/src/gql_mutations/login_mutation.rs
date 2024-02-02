@@ -1,5 +1,4 @@
 use async_graphql::{Context, FieldResult, InputObject};
-use http::header::SET_COOKIE;
 use log::error;
 use sqlx::PgPool;
 use crate::auth::create_token;
@@ -16,6 +15,7 @@ pub struct LoginInput {
 
 #[async_graphql::Object]
 impl LoginMutations {
+
     #[graphql(guard = "RoleGuard::new(Role::Anon)")]
     async fn login(
         &self,
@@ -32,10 +32,7 @@ impl LoginMutations {
                         let r_token : Result<String, jsonwebtoken::errors::Error> = create_token(&user.email);
                         match r_token
                         {
-                            Ok(token) => {
-                                ctx.insert_http_header(SET_COOKIE.as_str(), format!("login={}", token));
-                                Ok(token)
-                            },
+                            Ok(token) => Ok(token),
                             Err(error)=>{
                                 error!("Cannot create a token for the user with id {} due to error {}", login_input.email.clone(), error.to_string());
                                 Err(async_graphql::Error::new("Cannot create a token!"))
