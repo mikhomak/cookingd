@@ -6,6 +6,7 @@ use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use dotenv::dotenv;
 use sqlx::postgres::PgPool;
 use std::env;
+use actix_files;
 use web::Data;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use actix_cors::Cors;
@@ -70,6 +71,11 @@ async fn main() -> Result<()> {
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .service(web::resource("/").guard(guard::Post()).to(index_token))
+            .service(
+                actix_files::Files::new("/images", "./images")
+                    .show_files_listing()
+                    .use_last_modified(true),
+            )
             .service(web::resource("/").guard(guard::Post()).to(index))
             .service(web::resource("/playground").guard(guard::Get()).to(index_playground))
             .route("/ping", web::get().to(ping))

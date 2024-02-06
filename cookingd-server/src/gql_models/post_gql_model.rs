@@ -1,4 +1,6 @@
-use async_graphql::{ComplexObject, SimpleObject, Context, FieldResult};
+use std::{env, fs};
+use std::path::Path;
+use async_graphql::{ComplexObject, SimpleObject, Context, FieldResult, Error, ErrorExtensions};
 use chrono;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -8,6 +10,7 @@ use crate::gql_models::user_gql_model::User;
 use crate::psql_models::user_psql_model::UserModel;
 use crate::gql_models::tag_gql_model::Tag;
 use crate::psql_models::tag_psql_model::TagModel;
+use crate::services::image_service;
 
 #[derive(SimpleObject, Deserialize, Serialize)]
 #[graphql(complex)]
@@ -68,9 +71,21 @@ impl Post {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                match r_tag_models {
-                    Ok(tag_models) => Ok(Some("hehe".to_string())),
-                    Err(_) => Ok(None)
+                let host: String = env::var("HOST").expect("HOST is not set");
+                let port: String = env::var("PORT").expect("PORT is not set");
+                let r_full_url = image_service::construct_full_image_path(&self.id.to_string(), &self.user_id.to_string(), Option::None);
+                match r_full_url {
+                    Ok(full_url) => {
+                        match Path::new(&full_url.clone()).exists() {
+                            true => {
+                                Ok(Some(format!("http://localhost:{}/{}", port, full_url)))
+                            }
+                            false => { Ok(None) }
+                        }
+                    }
+                    Err(_) => {
+                        Ok(None)
+                    }
                 }
             }
             Err(_) => { Err(async_graphql::Error::new("Tags not found, error encountered")) }
