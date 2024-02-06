@@ -171,9 +171,9 @@ async fn store_image(post_input: PostCreationInput, post_uid_as_str: &str, user_
             let image_user_dir: String = construct_image_user_dir(&*post_uid_as_str, user_guid_as_str)?;
             let image_name: String = construct_image_title(mapped_image_type.unwrap())?;
 
-            let dir : String= format!("{}{}",
-                              f_image_dir,
-                              image_user_dir);
+            let dir: String = format!("{}{}",
+                                      f_image_dir,
+                                      image_user_dir);
             tokio::fs::create_dir_all(dir.clone()).await?;
             let mut created_file = File::create(dir.to_string() + &*image_name).await?;
             created_file.write_all(&main_image_value.content).await?;

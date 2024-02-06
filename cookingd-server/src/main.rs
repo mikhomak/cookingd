@@ -21,6 +21,7 @@ mod services;
 mod gql_models;
 mod auth;
 mod guards;
+
 pub type CookingSchema = Schema<Query, Mutations, EmptySubscription>;
 
 async fn index(schema: Data<CookingSchema>, req: GraphQLRequest) -> GraphQLResponse {

@@ -28,7 +28,7 @@ impl User {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_posts:  FieldResult<Vec<PostModel>>= PostModel::find_posts_for_user(pool, &self.id.to_string()).await;
+                let r_posts: FieldResult<Vec<PostModel>> = PostModel::find_posts_for_user(pool, &self.id.to_string()).await;
                 match r_posts {
                     Ok(post_models) => Ok(PostModel::convert_all_to_gql(&post_models)),
                     Err(_) => Err(async_graphql::Error::new("Posts not found!"))

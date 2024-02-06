@@ -18,13 +18,12 @@ pub struct LoginInput {
 
 #[derive(SimpleObject, Deserialize, Serialize)]
 pub struct LoginInfo {
-   pub user : User,
+    pub user: User,
     pub token: String,
 }
 
 #[async_graphql::Object]
 impl LoginMutations {
-
     #[graphql(guard = "RoleGuard::new(Role::Anon)")]
     async fn login(
         &self,
@@ -38,11 +37,11 @@ impl LoginMutations {
                 let r_user_model: Result<UserModel, _> = UserModel::find_for_email(pool, &login_input.email).await;
                 match r_user_model {
                     Ok(user_model) => {
-                        let r_token : Result<String, jsonwebtoken::errors::Error> = create_token(&user_model.id.to_string(), &user_model.email);
+                        let r_token: Result<String, jsonwebtoken::errors::Error> = create_token(&user_model.id.to_string(), &user_model.email);
                         match r_token
                         {
-                            Ok(token) => Ok(LoginInfo{ token, user: UserModel::convert_to_gql(&user_model)}),
-                            Err(error)=>{
+                            Ok(token) => Ok(LoginInfo { token, user: UserModel::convert_to_gql(&user_model) }),
+                            Err(error) => {
                                 error!("Cannot create a token for the user with id {} due to error {}", login_input.email.clone(), error.to_string());
                                 Err(async_graphql::Error::new("[LOGIN_002] Cannot create a token!")
                                     .extend_with(|_, e| e.set("error_code", "LOGIN_002")))

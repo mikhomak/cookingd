@@ -1,5 +1,5 @@
 use anyhow::Result;
-use async_graphql::{Context,  FieldResult,  ID, InputObject};
+use async_graphql::{Context, FieldResult, ID, InputObject};
 use sqlx::postgres::PgPool;
 use log::{error, info};
 use crate::gql_mutations::UserMutations;
@@ -20,7 +20,6 @@ pub struct UserRegistrationInput {
 
 #[async_graphql::Object]
 impl UserMutations {
-
     async fn create_user(
         &self,
         ctx: &Context<'_>,
@@ -35,7 +34,7 @@ impl UserMutations {
                     return Err(async_graphql::Error::new("Registration failed!"));
                 }
 
-                let r_created_user : FieldResult<UserModel> = UserModel::create(&pool, &user_input).await;
+                let r_created_user: FieldResult<UserModel> = UserModel::create(&pool, &user_input).await;
 
                 match r_created_user {
                     Ok(created_user) => Ok(UserModel::convert_to_gql(&created_user)),
@@ -53,8 +52,8 @@ impl UserMutations {
     }
 
     async fn delete_user(&self, ctx: &Context<'_>, id: ID) -> FieldResult<bool> {
-        let r_pool : Result<&PgPool,_>= ctx.data::<PgPool>();
-        let id : String = id.parse::<String>()?;
+        let r_pool: Result<&PgPool, _> = ctx.data::<PgPool>();
+        let id: String = id.parse::<String>()?;
         match r_pool {
             Ok(pool) => {
                 let r_delete: Result<(), _> = UserModel::delete(&pool, &id).await;
