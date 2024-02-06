@@ -60,4 +60,20 @@ impl Post {
             Err(_) => { Err(async_graphql::Error::new("Tags not found, error encountered")) }
         }
     }
+
+    async fn main_image_url(
+        &self,
+        ctx: &Context<'_>,
+    ) -> FieldResult<Option<String>> {
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        match r_pool {
+            Ok(pool) => {
+                match r_tag_models {
+                    Ok(tag_models) => Ok(Some("hehe".to_string())),
+                    Err(_) => Ok(None)
+                }
+            }
+            Err(_) => { Err(async_graphql::Error::new("Tags not found, error encountered")) }
+        }
+    }
 }

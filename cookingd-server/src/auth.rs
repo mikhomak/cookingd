@@ -15,6 +15,7 @@ use log::{error};
 pub struct CookingdClaims {
     sub: String,
     pub id: String,
+    pub email: String,
     company: String,
     exp: usize,
 }
@@ -52,9 +53,10 @@ pub async fn index_token(
 }
 
 
-pub fn create_token(id: &String) -> Result<String, Error> {
+pub fn create_token(id: &String, email: &String) -> Result<String, Error> {
     let my_claims = CookingdClaims {
         id: id.clone(),
+        email: email.clone(),
         company: "as".parse().unwrap(),
         exp: 100000000000000,
         sub: "asd".parse().unwrap()

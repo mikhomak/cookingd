@@ -2,6 +2,8 @@ use async_graphql::{Context, FieldResult, InputObject, Upload};
 use log::error;
 use sqlx::PgPool;
 use uuid::Uuid;
+use tokio::fs::File;
+use tokio::io::AsyncWriteExt;
 use crate::gql_models::post_gql_model::Post;
 use crate::services::site_configuration_service::is_posting_allowed;
 use crate::psql_models::post_psql_model::PostModel;
@@ -10,6 +12,9 @@ use crate::psql_models::tag_psql_model::TagModel;
 use crate::guards::role::RoleGuard;
 use crate::guards::role::Role;
 use crate::auth::CookingdClaims;
+use strfmt::strfmt;
+use std::collections::HashMap;
+use anyhow::Error;
 
 #[derive(InputObject)]
 pub struct PostCreationInput {
@@ -51,9 +56,12 @@ impl PostMutations {
 
                         match r_created_post {
                             Ok(created_post) => {
-                                if let Some(tags) = post_input.tags {
+                                if let Some(ref tags) = post_input.tags {
                                     let _ = create_and_associate_tags_with_post_uuid(&pool, &created_post.id, &tags).await;
                                 }
+
+                                store_image(post_input, &created_post.id.to_string(), &user_claims.id, ctx).await?;
+
                                 Ok(PostModel::convert_to_gql(&created_post))
                             }
                             Err(_) => {
@@ -144,4 +152,47 @@ async fn create_and_associate_tags_with_post_uuid(pool: &PgPool, post_uuid: &Uui
             Err(async_graphql::Error::new("Couldn't create tags!"))
         }
     }
+}
+
+async fn store_image(post_input: PostCreationInput, post_uid_as_str: &str, user_guid_as_str: &str, ctx: &Context<'_>) -> Result<(), Error> {
+    if let Some(main_image) = post_input.main_image {
+        if let Ok(main_image_value) = main_image.value(ctx) {
+            let image_type: &str = &*main_image_value.content_type.unwrap();
+
+            let mapped_image_type: Result<&str, async_graphql::Error> = match image_type {
+                "image/png" => Ok("png"),
+                "image/jpg" => Ok("jpg"),
+                "image/jpeg" => Ok("jpeg"),
+                _ => Err(async_graphql::Error::new("Image format is wrong!"))
+            };
+
+            let f_image_dir: String = dotenv::var("IMAGES_DIR").unwrap_or("images/".to_string());
+
+            let image_user_dir: String = construct_image_user_dir(&*post_uid_as_str, user_guid_as_str)?;
+            let image_name: String = construct_image_title(mapped_image_type.unwrap())?;
+
+            let dir : String= format!("{}{}",
+                              f_image_dir,
+                              image_user_dir);
+            tokio::fs::create_dir_all(dir.clone()).await?;
+            let mut created_file = File::create(dir.to_string() + &*image_name).await?;
+            created_file.write_all(&main_image_value.content).await?;
+        }
+    }
+    Ok(())
+}
+
+fn construct_image_user_dir(post_guid_as_str: &str, user_guid_as_str: &str) -> Result<String, Error> {
+    let uf_image_dir_user_format: String = dotenv::var("IMAGES_FORMAT").unwrap_or("{user}/{post}/".to_string());
+    let mut vars: HashMap<String, &str> = HashMap::new();
+    vars.insert("user".to_string(), user_guid_as_str);
+    vars.insert("post".to_string(), &*post_guid_as_str);
+    Ok(strfmt(&uf_image_dir_user_format, &vars)?)
+}
+
+fn construct_image_title(image_type: &str) -> Result<String, Error> {
+    let uf_image_name: String = dotenv::var("IMAGES_NAME").unwrap_or("main_image.{content_type}".to_string());
+    let mut vars: HashMap<String, &str> = HashMap::new();
+    vars.insert("content_type".to_string(), &*image_type);
+    Ok(strfmt(&uf_image_name, &vars)?)
 }

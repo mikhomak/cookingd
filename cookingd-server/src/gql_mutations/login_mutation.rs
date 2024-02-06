@@ -38,7 +38,7 @@ impl LoginMutations {
                 let r_user_model: Result<UserModel, _> = UserModel::find_for_email(pool, &login_input.email).await;
                 match r_user_model {
                     Ok(user_model) => {
-                        let r_token : Result<String, jsonwebtoken::errors::Error> = create_token(&user_model.email);
+                        let r_token : Result<String, jsonwebtoken::errors::Error> = create_token(&user_model.id.to_string(), &user_model.email);
                         match r_token
                         {
                             Ok(token) => Ok(LoginInfo{ token, user: UserModel::convert_to_gql(&user_model)}),
