@@ -2,11 +2,16 @@
 
 import { RouterLink } from 'vue-router'
 
-import {useUserStore} from '@/stores/useUserStore.ts'
+import { useUserStore } from '@/stores/useUserStore.ts'
+import router from '@/router';
 
 const userStore = useUserStore();
-
-
+function logout() {
+  userStore.isLoggedIn = false;
+  userStore.token = null;
+  userStore.user = null;
+  router.push({ path: '/' })
+}
 </script>
 
 <template>
@@ -17,8 +22,8 @@ const userStore = useUserStore();
     <RouterLink to="/About">About</RouterLink>
   </nav>
   <nav v-if="userStore.isLoggedIn" style="padding-top: 0;">
-    <RouterLink to="/">New post</RouterLink>
-    <RouterLink to="/">Logout</RouterLink>
+    <RouterLink to="/new-post">New post</RouterLink>
+    <a href="#" @click="logout()">Logout</a>
   </nav>
   <nav v-else style="padding-top: 0;">
     <RouterLink to="/login">Login</RouterLink>

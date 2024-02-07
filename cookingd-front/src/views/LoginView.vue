@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import router from '@/router';
 import { useUserStore } from '@/stores/useUserStore';
 import { useMutation } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
@@ -34,6 +35,8 @@ onDone((data) => {
     userStore.isLoggedIn = true;
     userStore.token = data.data.token;
     userStore.user = data.data.user;
+
+    router.push({path:'/'})
 })
 
 onError(errors => {
