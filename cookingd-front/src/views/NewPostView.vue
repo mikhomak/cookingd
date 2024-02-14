@@ -22,8 +22,11 @@ const { mutate: createPost, loading, onDone, error } = useMutation(gql`
             text: text.value,
             rating: rating.value,
             tags: tags.value,
-            main_image: image,
+            main_image: image.value,
         }
+    },
+    context:{
+        hasUpload: image.value !== null
     }
 }));
 
