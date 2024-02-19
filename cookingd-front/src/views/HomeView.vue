@@ -21,6 +21,17 @@ const LATEST_POSTS_QUERY = gql`
 }
 `
 
+const VERIFY_LOGIN_QUERY = gql`
+query (token : $token){
+  verifyToken(token : $token){
+    token
+    user {
+     id
+    }
+  }
+}
+`
+
 const { result, loading, error } = useQuery(LATEST_POSTS_QUERY);
 
 </script>

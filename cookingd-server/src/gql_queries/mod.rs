@@ -3,6 +3,7 @@ use async_graphql::MergedObject;
 mod user_query;
 mod post_query;
 mod tag_query;
+mod login_query;
 
 #[derive(Default)]
 pub struct UserQuery;
@@ -12,5 +13,8 @@ pub struct PostQuery;
 #[derive(Default)]
 pub struct TagQuery;
 
+#[derive(Default)]
+pub struct LoginQuery;
+
 #[derive(MergedObject, Default)]
-pub struct Query(UserQuery, PostQuery, TagQuery);
+pub struct Query(UserQuery, PostQuery, TagQuery, LoginQuery);

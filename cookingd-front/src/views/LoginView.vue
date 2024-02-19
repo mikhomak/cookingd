@@ -4,7 +4,7 @@ import { useUserStore } from '@/stores/useUserStore';
 import { useMutation } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { ref } from 'vue';
-
+import VueCookies from 'vue-cookies'
 const LOGIN_MUTATION = gql`
 mutation login($input: LoginInput!){
   login(loginInput: $input){
@@ -19,6 +19,7 @@ mutation login($input: LoginInput!){
 const userStore = useUserStore();
 const email = ref('');
 const password = ref('');
+const rememberMe = ref(false);
 
 const { mutate: login, onDone, onError, loading, error } = useMutation(LOGIN_MUTATION,
     () => ({
@@ -37,8 +38,10 @@ onDone((data) => {
     userStore.user = {
         id: data.data.login.user.id
     };
-    
-
+    VueCookies.set('login', data.data.login.token);
+    if(rememberMe.value){
+        VueCookies.set('remember_me', true);
+    }
     router.push({path:'/'})
 })
 
@@ -66,6 +69,12 @@ onError(errors => {
                 <label for="input_password">password</label>
                 <br />
                 <input id="input_password" type="text" v-model="password" />
+            </div>
+
+            <div>
+                <label for="input_remember_me">remember me?</label>
+                <br/>
+                <input id="input_remember_me" type="check_box" v-model="rememberMe"/>
             </div>
 
             <div>
