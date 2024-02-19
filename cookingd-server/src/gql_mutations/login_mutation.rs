@@ -10,7 +10,7 @@ use async_graphql::ErrorExtensions;
 use jsonwebtoken::TokenData;
 use serde::{Deserialize, Serialize};
 use crate::gql_models::user_gql_model::User;
-use crate::auth;
+use crate::{auth, utils};
 
 #[derive(InputObject)]
 pub struct LoginInput {
@@ -34,35 +34,29 @@ impl LoginMutations {
     ) -> FieldResult<LoginInfo> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
-        match r_pool {
-            Ok(pool) => {
-                let r_user_model: Result<UserModel, _> = UserModel::find_for_email(pool, &login_input.email).await;
-                match r_user_model {
-                    Ok(user_model) => {
-                        let r_token: Result<String, jsonwebtoken::errors::Error> = create_token(&user_model.id.to_string(), &user_model.email);
-                        match r_token
-                        {
-                            Ok(token) => Ok(LoginInfo { token, user: UserModel::convert_to_gql(&user_model) }),
-                            Err(error) => {
-                                error!("Cannot create a token for the user with id {} due to error {}", login_input.email.clone(), error.to_string());
-                                Err(async_graphql::Error::new("[LOGIN_002] Cannot create a token!")
-                                    .extend_with(|_, e| e.set("error_code", "LOGIN_002")))
-                            }
+        if let Ok(pool) = r_pool {
+            let r_user_model: Result<UserModel, _> = UserModel::find_for_email(pool, &login_input.email).await;
+            match r_user_model {
+                Ok(user_model) => {
+                    let r_token: Result<String, jsonwebtoken::errors::Error> = create_token(&user_model.id.to_string(), &user_model.email);
+                    match r_token
+                    {
+                        Ok(token) => Ok(LoginInfo { token, user: UserModel::convert_to_gql(&user_model) }),
+                        Err(error) => {
+                            error!("Cannot create a token for the user with id {} due to error {}", login_input.email.clone(), error.to_string());
+                            Err(async_graphql::Error::new("[LOGIN_002] Cannot create a token!")
+                                .extend_with(|_, e| e.set("error_code", "LOGIN_002")))
                         }
                     }
-                    Err(error) => {
-                        error!("Cannot login a user with id {} due to error {}", login_input.email, error.message);
-                        Err(async_graphql::Error::new("[LOGIN_001] Cannot find a user!")
-                            .extend_with(|_, e| e.set("error_code", "LOGIN_001")))
-                    }
+                }
+                Err(error) => {
+                    error!("Cannot login a user with id {} due to error {}", login_input.email, error.message);
+                    Err(async_graphql::Error::new("[LOGIN_001] Cannot find a user!")
+                        .extend_with(|_, e| e.set("error_code", "LOGIN_001")))
                 }
             }
-            Err(_) => {
-                error!("Error at logging a user. Database is not set in context!");
-                Err(async_graphql::Error::new("[SERVER_001] Server error!")
-                    .extend_with(|_, e| e.set("error_code", "SERVER_001")))
-            }
+        } else {
+            Err(utils::error_database_not_setup())
         }
     }
-
- }
+}

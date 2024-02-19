@@ -22,6 +22,7 @@ mod services;
 mod gql_models;
 mod auth;
 mod guards;
+mod utils;
 
 pub type CookingSchema = Schema<Query, Mutations, EmptySubscription>;
 
