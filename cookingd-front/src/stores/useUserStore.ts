@@ -1,9 +1,11 @@
 import { defineStore } from "pinia"
-import { ref, computed } from "vue"
+import { ref } from "vue"
 
 export const useUserStore = defineStore('user', () => {
   const token = ref(null)
-  const user = ref(null)
+  const user = ref<{id?: String}>({
+    id: undefined
+  })
   const isLoggedIn = ref(false);
 
   return { token, user, isLoggedIn }

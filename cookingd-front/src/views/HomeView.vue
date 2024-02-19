@@ -3,7 +3,7 @@ import gql from 'graphql-tag'
 import { useQuery } from '@vue/apollo-composable'
 import ShortPost from '@/components/posts/ShortPost.vue'
 
-const CHARACTERS_QUERY = gql`
+const LATEST_POSTS_QUERY = gql`
   query{
   latestPosts{
     id
@@ -13,6 +13,7 @@ const CHARACTERS_QUERY = gql`
     text
     shortText
     createdAt
+    mainImageUrl
     tags{
       name
     }
@@ -20,7 +21,8 @@ const CHARACTERS_QUERY = gql`
 }
 `
 
-const { result, loading, error } = useQuery(CHARACTERS_QUERY);
+const { result, loading, error } = useQuery(LATEST_POSTS_QUERY);
+
 </script>
 <template>
   <main>

@@ -16,10 +16,7 @@ pub async fn is_registration_enabled(pg_pool: &PgPool) -> bool {
         .fetch_one(pg_pool)
         .await;
 
-    match r_allow_registration {
-        Ok(allow_registration) => allow_registration,
-        Err(_) => false
-    }
+    r_allow_registration.unwrap_or_else(|_| false)
 }
 
 
@@ -29,8 +26,5 @@ pub async fn is_posting_allowed(pg_pool: &PgPool) -> bool {
         .fetch_one(pg_pool)
         .await;
 
-    match r_allow_posting {
-        Ok(allow_posting) => allow_posting,
-        Err(_) => false
-    }
+    r_allow_posting.unwrap_or_else(|_| false)
 }

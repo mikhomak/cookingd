@@ -33,8 +33,11 @@ const { mutate: login, onDone, onError, loading, error } = useMutation(LOGIN_MUT
 
 onDone((data) => {
     userStore.isLoggedIn = true;
-    userStore.token = data.data.token;
-    userStore.user = data.data.user;
+    userStore.token = data.data.login.token;
+    userStore.user = {
+        id: data.data.login.user.id
+    };
+    
 
     router.push({path:'/'})
 })
@@ -42,7 +45,7 @@ onDone((data) => {
 onError(errors => {
     userStore.isLoggedIn = false;
     userStore.token = null;
-    userStore.user = null;
+    userStore.user = {};
 })
 
 </script>

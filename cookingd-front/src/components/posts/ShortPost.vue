@@ -27,7 +27,7 @@ const props = defineProps({
         day: 'numeric', month: 'numeric', year: 'numeric'
       }) }}</i>
     </div>
-    <img v-if="props.post.main_image_url" v-bind:src="props.post.main_image_url" />
+    <img v-if="props.post.mainImageUrl" v-bind:src="props.post.mainImageUrl" />
     <img v-else src="@/assets/missing_image.webp" />
     <div style="flex:50%">
       <p>

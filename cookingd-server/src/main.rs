@@ -64,6 +64,7 @@ async fn main() -> Result<()> {
             .allowed_methods(vec!["GET", "POST"])
             .allowed_headers(vec![http::header::AUTHORIZATION.to_string(), http::header::ACCEPT.to_string()])
             .allowed_header(http::header::CONTENT_TYPE.to_string())
+            .allowed_header("login")
             .max_age(3600);
 
         App::new()
