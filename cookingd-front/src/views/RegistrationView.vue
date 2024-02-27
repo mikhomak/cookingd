@@ -17,10 +17,10 @@ const { mutate: createUser, loading, onDone, error } = useMutation(gql`
 `, () => ({
     variables: {
         registrationInput: {
-            name : name.value,
-            email : email.value,
-            password : password.value,
-            consent : consent.value
+            name: name.value,
+            email: email.value,
+            password: password.value,
+            consent: consent.value
         }
     }
 }));
@@ -35,7 +35,8 @@ const registration_complete = ref(false);
     <main style="">
         <h2 style="margin: auto; text-align: center; padding-bottom: 20px;">Registration</h2>
         <div v-if="registration_complete" style="width: 50%; margin: auto; text-align: center;">
-            <h4 style="color: green;  padding-bottom: 20px;">Registration is complete! You can now go to login page and access your account!
+            <h4 style="color: green;  padding-bottom: 20px;">Registration is complete! You can now go to login page and
+                access your account!
             </h4>
             <RouterLink to="/login" style="text-align: center;">Go to login</RouterLink>
         </div>
@@ -78,8 +79,7 @@ const registration_complete = ref(false);
                     </p>
                 </div>
                 <div>
-                    <button id="btn_submit" @click="createUser()"
-                        :disabled="!(password !== '' && password == confirm_password) 
+                    <button id="btn_submit" @click="createUser()" :disabled="!(password !== '' && password == confirm_password)
                         || !consent
                         || email === ''
                         || name === ''

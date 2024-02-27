@@ -2,7 +2,7 @@ type Post = {
   title: String,
   shortText: String,
   text: String,
-  main_image_url: string,
+  mainImageUrl: string,
   rating: Number,
   likes: Number,
   createdAt: Date,

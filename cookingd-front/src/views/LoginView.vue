@@ -38,11 +38,10 @@ onDone((data) => {
     userStore.user = {
         id: data.data.login.user.id
     };
-    VueCookies.set('login', data.data.login.token);
-    if(rememberMe.value){
-        VueCookies.set('remember_me', true);
+    if (rememberMe.value) {
+        VueCookies.set('remember_me', data.data.login.token);
     }
-    router.push({path:'/'})
+    router.push({ path: '/' })
 })
 
 onError(errors => {
@@ -73,8 +72,8 @@ onError(errors => {
 
             <div>
                 <label for="input_remember_me">remember me?</label>
-                <br/>
-                <input id="input_remember_me" type="check_box" v-model="rememberMe"/>
+                <br />
+                <input id="input_remember_me" type="checkbox" v-model="rememberMe" />
             </div>
 
             <div>
