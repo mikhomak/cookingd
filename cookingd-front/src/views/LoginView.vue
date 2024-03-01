@@ -11,6 +11,7 @@ mutation login($input: LoginInput!){
     token
     user {
         id
+        name
     }
   }
 }
@@ -32,14 +33,15 @@ const { mutate: login, onDone, onError, loading, error } = useMutation(LOGIN_MUT
     })
 )
 
-onDone((data) => {
+onDone((result) => {
     userStore.isLoggedIn = true;
-    userStore.token = data.data.login.token;
+    userStore.token = result.data.login.token;
     userStore.user = {
-        id: data.data.login.user.id
+        id: result.data.login.user.id,
+        name: result.data.login.user.name
     };
     if (rememberMe.value) {
-        VueCookies.set('remember_me', data.data.login.token);
+        VueCookies.set('remember_me', result.data.login.token);
     }
     router.push({ path: '/' })
 })

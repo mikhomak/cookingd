@@ -1,6 +1,6 @@
-use std::{env, fs};
+use std::env;
 use std::path::Path;
-use async_graphql::{ComplexObject, SimpleObject, Context, FieldResult, Error, ErrorExtensions};
+use async_graphql::{ComplexObject, SimpleObject, Context, FieldResult };
 use chrono;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -66,11 +66,8 @@ impl Post {
 
     async fn main_image_url(
         &self,
-        ctx: &Context<'_>,
+        _ctx: &Context<'_>,
     ) -> FieldResult<Option<String>> {
-        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        match r_pool {
-            Ok(pool) => {
                 let host: String = env::var("HOST").expect("HOST is not set");
                 let port: String = env::var("PORT").expect("PORT is not set");
                 let r_full_url = image_service::construct_full_image_path(&self.id.to_string(), &self.user_id.to_string(), Option::None);
@@ -87,8 +84,5 @@ impl Post {
                         Ok(None)
                     }
                 }
-            }
-            Err(_) => { Err(async_graphql::Error::new("Tags not found, error encountered")) }
-        }
     }
 }

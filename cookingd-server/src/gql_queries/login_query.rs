@@ -3,7 +3,6 @@ use jsonwebtoken::TokenData;
 use log::error;
 use sqlx::PgPool;
 use crate::auth::{CookingdClaims, get_token};
-use crate::gql_models::post_gql_model::Post;
 use crate::gql_mutations::login_mutation::LoginInfo;
 use crate::gql_queries::{LoginQuery};
 use crate::psql_models::user_psql_model::UserModel;
@@ -20,8 +19,8 @@ impl LoginQuery {
             Ok(pool) => {
                 let r_token : Result<TokenData<CookingdClaims>, jsonwebtoken::errors::Error>= get_token(&token);
                 match r_token {
-                    Ok(tokenData)=>{
-                        let email: String = tokenData.claims.email;
+                    Ok(token_data)=>{
+                        let email: String = token_data.claims.email;
                         let r_user_model: Result<UserModel, _> = UserModel::find_for_email(pool, &email).await;
                         match r_user_model {
                             Ok(user_model) => {
@@ -33,7 +32,7 @@ impl LoginQuery {
                                     .extend_with(|_, e| e.set("error_code", "LOGIN_003")))
                             }
                         }
-                    },
+                    }
                     Err(_)=>{Err(async_graphql::Error::new("[LOGIN_004] Cannot verify the token")
                         .extend_with(|_, e| e.set("error_code", "LOGIN_004")))}
                 }

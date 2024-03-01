@@ -49,7 +49,6 @@ function getHeaders() {
   const headers: { login?: string; "Content-Type"?: string } = {};
   const userStore = useUserStore();
   const token = userStore.token;
-  console.log(token)
   if (token) {
     headers["login"] = `${token}`;
   }

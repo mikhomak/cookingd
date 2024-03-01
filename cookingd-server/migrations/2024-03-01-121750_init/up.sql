@@ -7,6 +7,8 @@ CREATE TABLE "site_configuration"
     allow_login         BOOL not null default true
 );
 
+INSERT INTO  site_configuration VALUES (1, true,true,true,true);
+
 CREATE TABLE "c_user"
 (
     id            UUID         NOT NULL DEFAULT gen_random_uuid(),

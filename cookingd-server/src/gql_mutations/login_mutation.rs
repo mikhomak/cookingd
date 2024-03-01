@@ -1,16 +1,15 @@
 use async_graphql::{Context, FieldResult, InputObject, SimpleObject};
 use log::error;
 use sqlx::PgPool;
-use crate::auth::{CookingdClaims, create_token, get_token};
+use crate::auth::create_token;
 use crate::gql_mutations::LoginMutations;
 use crate::psql_models::user_psql_model::UserModel;
 use crate::guards::role::RoleGuard;
 use crate::guards::role::Role;
 use async_graphql::ErrorExtensions;
-use jsonwebtoken::TokenData;
 use serde::{Deserialize, Serialize};
 use crate::gql_models::user_gql_model::User;
-use crate::{auth, utils};
+use crate::utils;
 
 #[derive(InputObject)]
 pub struct LoginInput {
