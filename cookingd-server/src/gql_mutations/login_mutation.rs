@@ -42,7 +42,7 @@ impl LoginMutations {
                     {
                         Ok(token) => Ok(LoginInfo { token, user: UserModel::convert_to_gql(&user_model) }),
                         Err(error) => {
-                            error!("Cannot create a token for the user with id {} due to error {}", login_input.email.clone(), error.to_string());
+                            error!("Cannot create a token for the user with id [{}] due to error [{}]", login_input.email.clone(), error.to_string());
                             Err(async_graphql::Error::new("[LOGIN_002] Cannot create a token!")
                                 .extend_with(|_, e| e.set("error_code", "LOGIN_002")))
                         }

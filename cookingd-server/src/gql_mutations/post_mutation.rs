@@ -56,15 +56,15 @@ impl PostMutations {
                         match r_created_post {
                             Ok(created_post) => {
                                 if let Some(ref tags) = post_input.tags {
-                                    let _ = create_and_associate_tags_with_post_uuid(&pool, &created_post.id, &tags).await;
+                                    let _ = create_and_associate_tags_with_post_uuid(&pool, &created_post.id, &tags, Some(&user_claims.id)).await;
                                 }
 
                                 store_image(post_input, &created_post.id.to_string(), &user_claims.id, ctx).await?;
 
                                 Ok(PostModel::convert_to_gql(&created_post))
                             }
-                            Err(_) => {
-                                error!("Cannot create a post due to error");
+                            Err(error) => {
+                                error!("Cannot create a post due to error [{}]", error.message);
                                 Err(async_graphql::Error::new("Posting failed!"))
                             }
                         }
@@ -92,7 +92,7 @@ impl PostMutations {
 
         match r_pool {
             Ok(pool) => {
-                create_and_associate_tags(&pool, &tag_input.post_id, &tag_input.tag_names).await?;
+                create_and_associate_tags(&pool, &tag_input.post_id, &tag_input.tag_names, None).await?;
                 Ok(true)
             }
             Err(_) => {
@@ -124,11 +124,11 @@ impl PostMutations {
     }
 }
 
-async fn create_and_associate_tags(pool: &PgPool, post_id: &String, tags: &Vec<String>) -> Result<(), async_graphql::Error> {
+async fn create_and_associate_tags(pool: &PgPool, post_id: &String, tags: &Vec<String>, user_id: Option<&str>) -> Result<(), async_graphql::Error> {
     let r_post_uuid: Result<Uuid, _> = Uuid::parse_str(post_id);
     match r_post_uuid {
         Ok(post_uuid) => {
-            create_and_associate_tags_with_post_uuid(&pool, &post_uuid, &tags).await
+            create_and_associate_tags_with_post_uuid(&pool, &post_uuid, &tags, user_id).await
         }
         Err(_) => {
             error!("Cannot parse post uuid!");
@@ -137,17 +137,17 @@ async fn create_and_associate_tags(pool: &PgPool, post_id: &String, tags: &Vec<S
     }
 }
 
-async fn create_and_associate_tags_with_post_uuid(pool: &PgPool, post_uuid: &Uuid, tags: &Vec<String>) -> Result<(), async_graphql::Error> {
+async fn create_and_associate_tags_with_post_uuid(pool: &PgPool, post_uuid: &Uuid, tags: &Vec<String>, user_id: Option<&str>) -> Result<(), async_graphql::Error> {
     let r_created_tags = TagModel::create_batch_tags(
         &pool,
-        &tags).await;
+        &tags, user_id).await;
     match r_created_tags {
         Ok(created_tags) => {
             TagModel::associate_tags_to_post(&pool, &created_tags, &post_uuid).await;
             Ok(())
         }
         Err(error) => {
-            error!("Error while creating tags! Error - {0}", error.message);
+            error!("Error while creating tags! Error - [{0}]", error.message);
             Err(async_graphql::Error::new("Couldn't create tags!"))
         }
     }

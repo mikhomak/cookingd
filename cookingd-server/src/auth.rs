@@ -13,16 +13,14 @@ use log::{error};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CookingdClaims {
-    sub: String,
     pub id: String,
     pub email: String,
-    company: String,
     exp: usize,
 }
 
 fn get_token_from_headers(headers: &HeaderMap) -> Option<Token> {
     headers
-        .get("login")
+        .get("authorization")
         .and_then(|value| value.to_str().map(|s| Token(s.to_string())).ok())
 }
 
@@ -40,7 +38,7 @@ pub async fn index_token(
                 request = request.data(Role::User);
             }
             Err(error) => {
-                error!("Cannot decode a token for the user with token {} due to error {}", &token.0, error);
+                error!("Cannot decode a token for the user with token [{}] due to error [{}]", &token.0, error);
                 request = request.data(Role::Anon);
             }
         };
@@ -57,15 +55,13 @@ pub fn create_token(id: &String, email: &String) -> Result<String, Error> {
     let my_claims = CookingdClaims {
         id: id.clone(),
         email: email.clone(),
-        company: "as".parse().unwrap(),
         exp: 100000000000000,
-        sub: "asd".parse().unwrap()
     };
-    let token = encode(&Header::default(), &my_claims, &EncodingKey::from_secret("secret".as_ref()))?;
+    let token = encode(&Header::default(), &my_claims, &EncodingKey::from_secret(env!("AUTH_SECRET").as_ref()))?;
     Ok(token)
 }
 
 pub fn get_token(token: &String) -> Result<TokenData<CookingdClaims>, Error> {
-    let token = decode::<CookingdClaims>(token, &DecodingKey::from_secret("secret".as_ref()), &Validation::default())?;
+    let token = decode::<CookingdClaims>(token, &DecodingKey::from_secret(env!("AUTH_SECRET").as_ref()), &Validation::default())?;
     Ok(token)
 }

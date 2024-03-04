@@ -1,6 +1,6 @@
 use std::env;
 use std::path::Path;
-use async_graphql::{ComplexObject, SimpleObject, Context, FieldResult };
+use async_graphql::{ComplexObject, SimpleObject, Context, FieldResult};
 use chrono;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -68,21 +68,21 @@ impl Post {
         &self,
         _ctx: &Context<'_>,
     ) -> FieldResult<Option<String>> {
-                let host: String = env::var("HOST").expect("HOST is not set");
-                let port: String = env::var("PORT").expect("PORT is not set");
-                let r_full_url = image_service::construct_full_image_path(&self.id.to_string(), &self.user_id.to_string(), Option::None);
-                match r_full_url {
-                    Ok(full_url) => {
-                        match Path::new(&full_url.clone()).exists() {
-                            true => {
-                                Ok(Some(format!("http://localhost:{}/{}", port, full_url)))
-                            }
-                            false => { Ok(None) }
-                        }
+        let backend_url: String = env::var("BACKEND_URL").expect("BACKEND_URL is not set");
+        let port: String = env::var("PORT").expect("PORT is not set");
+        let r_full_url = image_service::construct_full_image_path(&self.id.to_string(), &self.user_id.to_string(), Option::None);
+        match r_full_url {
+            Ok(full_url) => {
+                match Path::new(&full_url.clone()).exists() {
+                    true => {
+                        Ok(Some(format!("http://{}:{}/{}", backend_url, port, full_url)))
                     }
-                    Err(_) => {
-                        Ok(None)
-                    }
+                    false => { Ok(None) }
                 }
+            }
+            Err(_) => {
+                Ok(None)
+            }
+        }
     }
 }

@@ -2,15 +2,17 @@
 import { useUserStore } from '@/stores/useUserStore';
 import { useMutation } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
-import { ref } from 'vue';
+import { ref, type Ref } from 'vue';
 
 const title = ref('');
 const text = ref('');
 const ingridents = ref('');
+const input_tag = ref('');
 const rating = ref(5);
-const tags = ref([])
+const tags: Ref<Set<String>> = ref(new Set())
 const image = ref(null);
-const userStore = useUserStore();
+
+
 const { mutate: createPost, loading, onDone, error } = useMutation(gql`
     mutation createNewPost($post_input: PostCreationInput!){
     createPost(postInput: $post_input){
@@ -23,16 +25,17 @@ const { mutate: createPost, loading, onDone, error } = useMutation(gql`
             title: title.value,
             text: text.value,
             rating: rating.value,
-            tags: tags.value,
+            tags: [...tags.value.values()],
             mainImage: image.value,
         }
     },
-    context:{
+    context: {
         hasUpload: image.value !== null,
     },
 }));
 
 const new_post_created = ref(false);
+
 onDone(data => {
     new_post_created.value = true;
 });
@@ -70,12 +73,28 @@ async function uploadPhoto({ target }) {
                 <div>
                     <label for="input_rating">rating</label>
                     <br />
-                    <input id="input_rating" type="number" v-model="rating" />
+                    <input id="input_rating" type="number" v-model="rating" max="5" min="1"/>
+                </div>
+
+                <div>
+                    <label for="input_tag">Tags</label>
+                    <li v-if="tags.size !== 0" v-for="tag in tags" style=" list-style-type: none;">
+                        <span>{{ tag }}</span><button @click="(event) => {
+                            tags.delete(tag);
+                        }">X</button>
+                    </li>
+                    <br />
+                    <input id="input_tag" type="text" v-model="input_tag" />
+                    <button id="btn_tag_submit" @click="(event) => {
+                        event.preventDefault();
+                        tags.add(input_tag);
+                        input_tag = '';
+                    }" :disabled="input_tag === ''">add tag</button>
                 </div>
 
                 <div>
                     <label for="input_image"> image</label>
-                    <input id="input_image" type="file" accept="image/jpeg,image/png,image/jpg"  @change="uploadPhoto"/>
+                    <input id="input_image" type="file" accept="image/jpeg,image/png,image/jpg" @change="uploadPhoto" />
                 </div>
 
                 <div v-if="error" style="color: red; width: 50%; margin: auto;">

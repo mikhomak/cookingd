@@ -8,6 +8,7 @@ import { DefaultApolloClient } from '@vue/apollo-composable'
 import { createPinia } from 'pinia'
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import { useUserStore } from '@/stores/useUserStore'
+import process from 'process'
 
 const cache = new InMemoryCache()
 
@@ -17,10 +18,10 @@ const pinia = createPinia()
 const apolloClient = new ApolloClient({
   cache,
   connectToDevTools: true,
-  uri: 'http://localhost:8080/',
+  uri: import.meta.env.VITE_BACKEND_URL,
   link: ApolloLink.from([
     createUploadLink({
-      uri: 'http://localhost:8080/',
+      uri: import.meta.env.VITE_BACKEND_URL ,
       fetch: (uri: RequestInfo, options: RequestInit) => {
         options.headers = { ...getHeaders() };
         return fetch(uri, options);
@@ -50,7 +51,7 @@ function getHeaders() {
   const userStore = useUserStore();
   const token = userStore.token;
   if (token) {
-    headers["login"] = `${token}`;
+    headers["authorization"] = `${token}`;
   }
   return headers;
 }

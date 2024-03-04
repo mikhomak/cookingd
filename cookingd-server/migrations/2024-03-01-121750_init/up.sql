@@ -7,7 +7,8 @@ CREATE TABLE "site_configuration"
     allow_login         BOOL not null default true
 );
 
-INSERT INTO  site_configuration VALUES (1, true,true,true,true);
+INSERT INTO site_configuration
+VALUES (1, true, true, true, true);
 
 CREATE TABLE "c_user"
 (
@@ -71,7 +72,7 @@ CREATE TABLE "tag"
 (
     name             VARCHAR(70) NOT NULL,
     created_at       TIMESTAMPTZ NOT NULL DEFAULT 'NOW'::timestamptz,
-    user_who_created UUID,
+    user_who_created UUID REFERENCES "c_user" (id),
     PRIMARY KEY (name)
 );
 
