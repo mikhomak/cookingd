@@ -8,7 +8,6 @@ import { DefaultApolloClient } from '@vue/apollo-composable'
 import { createPinia } from 'pinia'
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import { useUserStore } from '@/stores/useUserStore'
-import process from 'process'
 
 const cache = new InMemoryCache()
 

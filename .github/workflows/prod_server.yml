@@ -1,0 +1,50 @@
+name: Build and deploy rust graphql server 
+on:
+  push:
+    paths:
+      - cookingd-server
+      - .github/workflows/prod_server.yml
+    branches:
+      - main
+
+env:
+  SQLX_OFFLINE: true
+
+jobs:
+  build:
+    runs-on: self-hosted 
+    environment: prod
+    env:
+      ENV_FILE : ${{secrets.ENV_FILE}}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-cargo-
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+
+    - name: Create env file
+      working-directory: ./cookingd-server
+      run: |
+          touch .env
+          echo "$ENV_FILE" > .env
+
+    - name: Deploy
+      working-directory: ./cookingd-server
+      run: |
+          docker-compose down
+          docker-compose build
+          docker-compose up -d
