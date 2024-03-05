@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT allow_posting FROM site_configuration",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "allow_posting",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "aa7c9e48bee415db0db460cee1e7e954a58083d94769364e82a2ef738040ccf7"
+}

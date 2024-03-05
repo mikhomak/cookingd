@@ -53,6 +53,9 @@ async fn main() -> Result<()> {
     let host: String = env::var("HOST").expect("HOST is not set");
     let port: String = env::var("PORT").expect("PORT is not set");
     let db_pool: PgPool = PgPool::connect(&database_url).await?;
+    sqlx::migrate!()
+        .run(&db_pool)
+        .await?;
 
     let schema: CookingSchema = Schema::build(Query::default(), Mutations::default(), EmptySubscription)
         .data(db_pool)
