@@ -50,7 +50,7 @@ async function uploadPhoto({ target }) {
 
 <template>
     <main style="">
-        <h2 style="margin: auto; text-align: center; padding-bottom: 20px;">Registration</h2>
+        <h2 style="margin: auto; text-align: center; padding-bottom: 20px;">Create new post</h2>
         <div v-if="new_post_created" style="width: 50%; margin: auto; text-align: center;">
             <h4 style="color: green;  padding-bottom: 20px;">
                 Post has been created!
