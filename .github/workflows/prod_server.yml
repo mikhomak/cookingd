@@ -42,6 +42,13 @@ jobs:
           touch .env
           echo "$ENV_FILE" > .env
 
+    - name: Build
+      working-directory: ./cookingd-server
+      run: |
+          docker-compose down api
+          docker-compose down bd
+          docker-compose build
+
   deploy:
     runs-on: self-hosted 
     needs: build
