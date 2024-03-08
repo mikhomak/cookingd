@@ -51,7 +51,7 @@ impl PostMutations {
                 let r_user = ctx.data::<CookingdClaims>();
                 match r_user {
                     Ok(user_claims) => {
-                        let r_created_post: FieldResult<PostModel> = PostModel::create(&pool, &post_input, &user_claims.id).await;
+                        let r_created_post: FieldResult<PostModel> = PostModel::create(&pool, ctx,&post_input, &user_claims.id).await;
 
                         match r_created_post {
                             Ok(created_post) => {
@@ -158,12 +158,12 @@ async fn store_image(post_input: PostCreationInput, post_uid_as_str: &str, user_
         if let Ok(main_image_value) = main_image.value(ctx) {
             let image_type: &str = &*main_image_value.content_type.unwrap();
 
-            let mapped_image_type = image_service::map_image_type(image_type);
+            let mapped_image_type = image_service::map_image_type(&image_type);
 
             let f_image_dir: String = dotenv::var("IMAGES_DIR").unwrap_or("images/".to_string());
 
             let image_user_dir: String = image_service::construct_image_user_dir(&*post_uid_as_str, user_guid_as_str)?;
-            let image_name: String = image_service::construct_image_title(mapped_image_type.unwrap())?;
+            let image_name: String = image_service::construct_image_title(mapped_image_type.unwrap().as_str())?;
 
             let dir: String = format!("{}{}",
                                       f_image_dir,

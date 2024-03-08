@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO post ( user_id, title, text, rating) VALUES ($1, $2, $3, $4) RETURNING *",
+  "query": "INSERT INTO post ( user_id, title, text, rating, main_image_file_type) VALUES ($1, $2, $3, $4, $5) RETURNING *",
   "describe": {
     "columns": [
       {
@@ -47,6 +47,11 @@
         "ordinal": 8,
         "name": "allow_likes",
         "type_info": "Bool"
+      },
+      {
+        "ordinal": 9,
+        "name": "main_image_file_type",
+        "type_info": "Varchar"
       }
     ],
     "parameters": {
@@ -54,7 +59,8 @@
         "Uuid",
         "Varchar",
         "Text",
-        "Float8"
+        "Float8",
+        "Varchar"
       ]
     },
     "nullable": [
@@ -66,8 +72,9 @@
       false,
       false,
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "7ecb22d471932195adc0944633455035dc765ec7e54cd6dfc348483828f399b8"
+  "hash": "0cd02bdad6a714d9ed73c299a0a33b28bfc74c27b392a3fc8584963d6b18f782"
 }

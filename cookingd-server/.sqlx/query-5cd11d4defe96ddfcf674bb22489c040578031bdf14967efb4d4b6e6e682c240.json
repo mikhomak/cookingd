@@ -47,6 +47,11 @@
         "ordinal": 8,
         "name": "allow_likes",
         "type_info": "Bool"
+      },
+      {
+        "ordinal": 9,
+        "name": "main_image_file_type",
+        "type_info": "Varchar"
       }
     ],
     "parameters": {
@@ -63,7 +68,8 @@
       false,
       false,
       false,
-      false
+      false,
+      true
     ]
   },
   "hash": "5cd11d4defe96ddfcf674bb22489c040578031bdf14967efb4d4b6e6e682c240"

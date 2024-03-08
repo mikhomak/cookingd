@@ -15,7 +15,6 @@ impl RoleGuard {
         Self { role }
     }
 }
-
 impl Guard for RoleGuard {
     async fn check(&self, ctx: &Context<'_>) -> Result<(), Error> {
         if ctx.data_opt::<Role>() == Some(&self.role) {

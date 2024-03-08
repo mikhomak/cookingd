@@ -26,6 +26,8 @@ pub struct Post {
     pub allow_comments: bool,
     pub allow_likes: bool,
     pub created_at: DateTime<Utc>,
+    #[graphql(skip)]
+    pub main_image_file_type : Option<String>
 }
 
 #[ComplexObject]
@@ -70,7 +72,10 @@ impl Post {
     ) -> FieldResult<Option<String>> {
         let backend_url: String = env::var("BACKEND_URL").expect("BACKEND_URL is not set");
         let port: String = env::var("PORT").expect("PORT is not set");
-        let r_full_url = image_service::construct_full_image_path(&self.id.to_string(), &self.user_id.to_string(), Option::None);
+        let image_type = self.main_image_file_type.clone().map_or_else(|| "jpeg".to_string(), |file_type| file_type);
+        let r_full_url = image_service::construct_full_image_path(&self.id.to_string(),
+                                                                  &self.user_id.to_string(),
+                                                                  Some(image_type.as_str()));
         match r_full_url {
             Ok(full_url) => {
                 match Path::new(&full_url.clone()).exists() {

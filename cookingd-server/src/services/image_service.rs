@@ -11,11 +11,11 @@ pub fn construct_full_image_path(post_guid_as_str: &str, user_guid_as_str: &str,
     ))
 }
 
-pub fn map_image_type(image_type: &str) -> Result<&str, async_graphql::Error> {
-    let mapped_image_type: Result<&str, async_graphql::Error> = match image_type {
-        "image/png" => Ok("png"),
-        "image/jpg" => Ok("jpg"),
-        "image/jpeg" => Ok("jpeg"),
+pub fn map_image_type(image_type: &str) -> Result<String, async_graphql::Error> {
+    let mapped_image_type: Result<String, async_graphql::Error> = match image_type {
+        "image/png" => Ok("png".to_string()),
+        "image/jpg" => Ok("jpg".to_string()),
+        "image/jpeg" => Ok("jpeg".to_string()),
         _ => Err(async_graphql::Error::new("Image format is wrong!"))
     };
     mapped_image_type

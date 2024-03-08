@@ -1,9 +1,11 @@
-use async_graphql::FieldResult;
+use async_graphql::{Context, FieldResult};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 use crate::gql_models::post_gql_model::Post;
 use crate::gql_mutations::post_mutation::PostCreationInput;
+use crate::main;
+use crate::services::image_service;
 
 #[derive(FromRow, Deserialize, Serialize)]
 pub struct PostModel {
@@ -16,6 +18,7 @@ pub struct PostModel {
     pub allow_comments: bool,
     pub allow_likes: bool,
     pub created_at: DateTime<Utc>,
+    pub main_image_file_type : Option<String>
 }
 
 impl PostModel {
@@ -27,14 +30,23 @@ impl PostModel {
     }
 
 
-    pub async fn create(pool: &PgPool, post_input: &PostCreationInput, user_id: &str) -> FieldResult<PostModel> {
+    pub async fn create(pool: &PgPool,ctx: &Context<'_>, post_input: &PostCreationInput, user_id: &str) -> FieldResult<PostModel> {
+        let mut main_image_type = Option::None;
+        if let Some(main_image) = post_input.main_image {
+            if let Ok(main_image_value) = main_image.value(ctx) {
+                let image_type: String= main_image_value.content_type.unwrap().to_string();
+                main_image_type = Some(image_service::map_image_type(&image_type.clone()).unwrap_or("".to_string()));
+            }
+        }
         let r_post : PostModel = sqlx::query_as!(
             PostModel,
-            "INSERT INTO post ( user_id, title, text, rating) VALUES ($1, $2, $3, $4) RETURNING *",
+            "INSERT INTO post ( user_id, title, text, rating, main_image_file_type) VALUES ($1, $2, $3, $4, $5) RETURNING *",
             sqlx::types::Uuid::parse_str(user_id)?,
             post_input.title,
             post_input.text,
-            post_input.rating)
+            post_input.rating,
+            main_image_type.unwrap_or("".to_string())
+        )
             .fetch_one(pool)
             .await?;
         Ok(r_post)
@@ -70,7 +82,8 @@ impl PostModel {
             allow_comments: self.allow_comments,
             allow_likes: self.allow_likes,
             created_at: self.created_at,
-            user_id: self.user_id
+            user_id: self.user_id,
+            main_image_file_type: self.main_image_file_type.clone()
         };
     }
 
