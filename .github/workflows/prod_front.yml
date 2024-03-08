@@ -31,6 +31,8 @@ jobs:
           docker-compose build
   
   deploy:
+    env:
+      ENV_FRONT_FILE : ${{secrets.ENV_FRONT_FILE}}
     needs: build
     runs-on: self-hosted 
     environment: prod
