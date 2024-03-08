@@ -41,7 +41,8 @@ onDone((result) => {
         name: result.data.login.user.name
     };
     if (rememberMe.value) {
-        VueCookies.VueCookies.set('remember_me', result.data.login.token);
+// @ts-ignore
+        VueCookies.set('remember_me', result.data.login.token);
     }
     router.push({ path: '/' })
 })

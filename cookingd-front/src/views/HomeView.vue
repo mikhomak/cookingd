@@ -41,7 +41,9 @@ const userStore = useUserStore();
 
 const { result, loading, error } = useQuery(LATEST_POSTS_QUERY);
 
-const tokenFromCookies = VueCookies.VueCookies.get('remember_me');
+
+// @ts-ignore
+const tokenFromCookies = VueCookies.get('remember_me');
 const token_loading = ref(false);
 const token_error = ref(null);
 

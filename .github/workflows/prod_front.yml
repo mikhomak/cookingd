@@ -2,7 +2,7 @@ name: Build and deploy vue + nginx site
 on:
   push:
     paths:
-      - /cookingd-front
+      - ./cookingd-front
       - .github/workflows/prod_front.yml
     branches:
       - main
