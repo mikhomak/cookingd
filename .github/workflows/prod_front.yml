@@ -1,0 +1,32 @@
+name: Build and deploy vue + nginx site 
+on:
+  push:
+    paths:
+      - cookingd-front
+      - .github/workflows/prod_front.yml
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted 
+    environment: prod
+    env:
+      ENV_FRONT_FILE : ${{secrets.ENV_FRONT_FILE}}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Create env file
+      working-directory: ./cookingd-front
+      run: |
+          touch .env
+          echo "$ENV_FRONT_FILE" > .env
+
+    - name: Deploy
+      working-directory: ./cookingd-front
+      run: |
+          docker-compose down front
+          docker-compose build
+          docker-compose up -d

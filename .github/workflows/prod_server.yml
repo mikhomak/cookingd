@@ -45,6 +45,7 @@ jobs:
     - name: Deploy
       working-directory: ./cookingd-server
       run: |
-          docker-compose down
+          docker-compose down api
+          docker-compose down db
           docker-compose build
           docker-compose up -d

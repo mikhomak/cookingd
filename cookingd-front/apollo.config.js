@@ -2,7 +2,7 @@ module.exports = {
     client: {
       service: {
         name: 'cookingd',
-        url: 'http://localhost:8080/',
+        url: import.meta.env.VITE_BACKEND_URL,
       },
       includes: [
         'src/**/*.vue',
