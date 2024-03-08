@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Cache dependencies
       uses: actions/cache@v3
@@ -42,10 +42,13 @@ jobs:
           touch .env
           echo "$ENV_FILE" > .env
 
+  deploy:
+    runs-on: self-hosted 
+    environment: prod
+    env:
+      ENV_FILE : ${{secrets.ENV_FILE}}
+    steps:
     - name: Deploy
       working-directory: ./cookingd-server
       run: |
-          docker-compose down api
-          docker-compose down db
-          docker-compose build
           docker-compose up -d

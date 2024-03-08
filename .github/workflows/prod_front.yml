@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Create env file
       working-directory: ./cookingd-front
@@ -24,9 +24,17 @@ jobs:
           touch .env
           echo "$ENV_FRONT_FILE" > .env
 
-    - name: Deploy
+    - name: Build
       working-directory: ./cookingd-front
       run: |
           docker-compose down front
           docker-compose build
+  
+  deploy:
+    runs-on: self-hosted 
+    environment: prod
+    steps:
+    - name: Deploy
+      working-directory: ./cookingd-front
+      run: |
           docker-compose up -d
