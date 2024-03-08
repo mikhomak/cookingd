@@ -2,7 +2,7 @@ name: Build and deploy rust graphql server
 on:
   push:
     paths:
-      - cookingd-server
+      - /cookingd-server
       - .github/workflows/prod_server.yml
     branches:
       - main

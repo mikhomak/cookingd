@@ -18,8 +18,6 @@ const pinia = createPinia()
 
 const apolloClient = new ApolloClient({
   cache,
-  connectToDevTools: true,
-  uri: import.meta.env.VITE_BACKEND_URL,
   link: ApolloLink.from([
     createUploadLink({
       uri: import.meta.env.VITE_BACKEND_URL ,
