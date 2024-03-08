@@ -44,6 +44,7 @@ jobs:
 
   deploy:
     runs-on: self-hosted 
+    needs: build
     environment: prod
     env:
       ENV_FILE : ${{secrets.ENV_FILE}}
