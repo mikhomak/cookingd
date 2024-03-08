@@ -40,6 +40,7 @@ onDone(data => {
     new_post_created.value = true;
 });
 
+// @ts-ignore
 async function uploadPhoto({ target }) {
     image.value = target.files[0];
 }

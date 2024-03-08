@@ -6,7 +6,6 @@ WORKDIR /cookingd-server
 
 # Copy source code from previous stage
 COPY . .
-# Generate info for caching dependencies
 
 # Build application
 RUN rustup target add aarch64-unknown-linux-musl

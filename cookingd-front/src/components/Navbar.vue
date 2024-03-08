@@ -9,7 +9,7 @@ const userStore = useUserStore();
 function logout() {
   userStore.isLoggedIn = false;
   userStore.token = null;
-  userStore.user = null;
+  userStore.user = {};
   router.push({ path: '/' })
 }
 </script>

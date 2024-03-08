@@ -1,11 +1,13 @@
 import './assets/main.css'
 
 import { createApp, h, provide } from 'vue'
+// @ts-ignore
 import App from './App.vue'
 import router from './router'
 import { ApolloClient, ApolloLink, InMemoryCache } from '@apollo/client/core'
 import { DefaultApolloClient } from '@vue/apollo-composable'
 import { createPinia } from 'pinia'
+// @ts-ignore
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
 import { useUserStore } from '@/stores/useUserStore'
 
@@ -46,7 +48,7 @@ app.mount('#app');
 
 
 function getHeaders() {
-  const headers: { login?: string; "Content-Type"?: string } = {};
+  const headers: { authorization?: string; "Content-Type"?: string } = {};
   const userStore = useUserStore();
   const token = userStore.token;
   if (token) {
