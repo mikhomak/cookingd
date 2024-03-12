@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 use crate::gql_models::post_gql_model::Post;
 use crate::gql_mutations::post_mutation::PostCreationInput;
-use crate::main;
 use crate::services::image_service;
 
 #[derive(FromRow, Deserialize, Serialize)]
@@ -23,7 +22,7 @@ pub struct PostModel {
 
 impl PostModel {
     pub async fn get_latest_posts(pool: &PgPool) -> FieldResult<Vec<PostModel>> {
-        let r_posts: Vec<PostModel> = sqlx::query_as!(PostModel, "SELECT * FROM post ORDER BY created_at DESC")
+        let r_posts: Vec<PostModel> = sqlx::query_as!(PostModel, "SELECT * FROM post ORDER BY created_at ASC")
             .fetch_all(pool)
             .await?;
         Ok(r_posts)
