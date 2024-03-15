@@ -14,6 +14,7 @@ use crate::guards::role::RoleGuard;
 use crate::guards::role::Role;
 use crate::auth::CookingdClaims;
 use crate::services::image_service;
+use crate::utils;
 
 #[derive(InputObject)]
 pub struct PostCreationInput {
@@ -120,6 +121,23 @@ impl PostMutations {
                 error!("Error at associating tags. Database is not set in context!");
                 Err(async_graphql::Error::new("Server error!"))
             }
+        }
+    }
+
+    async fn delete_post(
+        &self,
+        ctx: &Context<'_>,
+        post_id: String,
+    ) -> FieldResult<bool> {
+        let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        if let Ok(pool) = r_pool {
+           match PostModel::delete_post_for_id(pool, &post_id).await {
+               Ok(_) => {Ok(true)}
+               Err(_) => {Ok(false)}
+           }
+        }
+        else{
+                Err(utils::error_database_not_setup())
         }
     }
 }

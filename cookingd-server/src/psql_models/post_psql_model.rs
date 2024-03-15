@@ -70,6 +70,13 @@ impl PostModel {
         Ok(r_post)
     }
 
+    pub async fn delete_post_for_id(pool: &PgPool, post_id: &String) -> FieldResult<()>{
+        sqlx::query!("DELETE FROM post WHERE id = $1",sqlx::types::Uuid::parse_str(post_id)?)
+            .execute(pool)
+            .await?;
+        Ok(())
+    }
+
     pub fn convert_to_gql(&self) -> Post {
         return Post {
             id: self.id,
