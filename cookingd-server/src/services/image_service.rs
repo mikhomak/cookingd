@@ -2,10 +2,9 @@ use std::collections::HashMap;
 use anyhow::Error;
 use strfmt::strfmt;
 
-pub fn construct_full_image_path(post_guid_as_str: &str, user_guid_as_str: &str, uf_image_format: Option<&str>) -> Result<String, async_graphql::Error>{
-    let f_image_dir: String = dotenv::var("IMAGES_DIR").unwrap_or("images/".to_string());
-    Ok(format!("{}{}{}",
-               f_image_dir,
+pub fn construct_full_image_path(post_guid_as_str: &str, user_guid_as_str: &str, uf_image_format: Option<&str>, default_location: &str) -> Result<String, async_graphql::Error>{
+    Ok(format!("{}/{}{}",
+               default_location,
                construct_image_user_dir(&post_guid_as_str, &user_guid_as_str).unwrap(),
                construct_image_title(uf_image_format.unwrap_or("png")).unwrap()
     ))

@@ -62,6 +62,7 @@ async fn main() -> Result<()> {
         .finish();
 
     env_logger::init();
+    let f_image_dir: String = dotenv::var("IMAGES_DIR").unwrap_or("images/".to_string());
 
     let server = HttpServer::new(move || {
         let cors = Cors::default()
@@ -78,7 +79,7 @@ async fn main() -> Result<()> {
             .wrap(cors)
             .service(web::resource("/").guard(guard::Post()).to(index_token))
             .service(
-                actix_files::Files::new("/images", "./images")
+                actix_files::Files::new("/images", f_image_dir.clone())
                     .show_files_listing()
                     .use_last_modified(true),
             )

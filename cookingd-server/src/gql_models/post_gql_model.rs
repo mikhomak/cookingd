@@ -75,10 +75,16 @@ impl Post {
         let image_type = self.main_image_file_type.clone().map_or_else(|| "jpeg".to_string(), |file_type| file_type);
         let r_full_url = image_service::construct_full_image_path(&self.id.to_string(),
                                                                   &self.user_id.to_string(),
-                                                                  Some(image_type.as_str()));
+                                                                  Some(image_type.as_str()),
+                                                                  "images/");
+        let f_image_dir: String = dotenv::var("IMAGES_DIR").unwrap_or("images/".to_string());
+        let r_full_dir = image_service::construct_full_image_path(&self.id.to_string(),
+                                                                  &self.user_id.to_string(),
+                                                                  Some(image_type.as_str()),
+                                                                  f_image_dir.as_str());
         match r_full_url {
             Ok(full_url) => {
-                match Path::new(&full_url.clone()).exists() {
+                match Path::new(&r_full_dir.unwrap()).exists() {
                     true => {
                         Ok(Some(format!("http://{}:{}/{}", backend_url, port, full_url)))
                     }

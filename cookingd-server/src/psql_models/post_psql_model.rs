@@ -22,7 +22,7 @@ pub struct PostModel {
 
 impl PostModel {
     pub async fn get_latest_posts(pool: &PgPool) -> FieldResult<Vec<PostModel>> {
-        let r_posts: Vec<PostModel> = sqlx::query_as!(PostModel, "SELECT * FROM post ORDER BY created_at ASC")
+        let r_posts: Vec<PostModel> = sqlx::query_as!(PostModel, "SELECT * FROM post ORDER BY created_at DESC")
             .fetch_all(pool)
             .await?;
         Ok(r_posts)

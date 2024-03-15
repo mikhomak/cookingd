@@ -1,5 +1,5 @@
 use async_graphql::{Context, FieldResult, InputObject, Upload};
-use log::error;
+use log::{error, info};
 use sqlx::PgPool;
 use uuid::Uuid;
 use tokio::fs::File;
@@ -165,12 +165,33 @@ async fn store_image(post_input: PostCreationInput, post_uid_as_str: &str, user_
             let image_user_dir: String = image_service::construct_image_user_dir(&*post_uid_as_str, user_guid_as_str)?;
             let image_name: String = image_service::construct_image_title(mapped_image_type.unwrap().as_str())?;
 
-            let dir: String = format!("{}{}",
+            info!("trying to create an image in [{0}]", f_image_dir);
+
+            let dir: String = format!("{}/{}",
                                       f_image_dir,
                                       image_user_dir);
-            tokio::fs::create_dir_all(dir.clone()).await?;
-            let mut created_file = File::create(dir.to_string() + &*image_name).await?;
-            created_file.write_all(&main_image_value.content).await?;
+            info!("trying to create a directory [{0}]", dir.clone());
+            match tokio::fs::create_dir_all(dir.clone()).await {
+                Ok(_) => {
+                    match File::create(dir.to_string() + &*image_name).await {
+                        Ok(mut created_file) => {
+                            match created_file.write_all(&main_image_value.content).await {
+                                Ok(_) => {}
+                                Err(error) => {
+                                    error!("Error while writing to the file, error - [{0}]", error.to_string())
+                                }
+                            };
+                        }
+                        Err(error) => {
+                            error!("Error while creating file, error - [{0}]", error.to_string())
+                        }
+                    };
+                }
+                Err(error) => {
+                    error!("Error while creating an dir, error -  [{0}]", error.to_string())
+                }
+            };
+
         }
     }
     Ok(())
