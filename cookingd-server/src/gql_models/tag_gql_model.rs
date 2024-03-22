@@ -7,5 +7,5 @@ use serde::{Deserialize, Serialize};
 pub struct Tag {
     pub name: String,
     pub created_at: DateTime<Utc>,
-    pub user_who_created: Option<String>
+    pub user_who_created: Option<String>,
 }

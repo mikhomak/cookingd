@@ -1,9 +1,9 @@
+use crate::gql_models::tag_gql_model::Tag;
 use async_graphql::FieldResult;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgPool, Postgres, QueryBuilder, Row};
 use sqlx::postgres::PgQueryResult;
-use crate::gql_models::tag_gql_model::Tag;
+use sqlx::{FromRow, PgPool, Postgres, QueryBuilder, Row};
 
 #[derive(FromRow, Deserialize, Serialize)]
 pub struct TagModel {
@@ -14,20 +14,23 @@ pub struct TagModel {
 
 impl TagModel {
     pub async fn get_all(pool: &PgPool) -> FieldResult<Vec<TagModel>> {
-        let r_tag_models: Vec<TagModel> = sqlx::query_as!(
-            TagModel,
-            "SELECT * FROM tag")
+        let r_tag_models: Vec<TagModel> = sqlx::query_as!(TagModel, "SELECT * FROM tag")
             .fetch_all(pool)
             .await?;
         Ok(r_tag_models)
     }
 
-    pub async fn create_batch_tags(pool: &PgPool, tag_names: &Vec<String>, o_user_id: Option<&str>) -> FieldResult<Vec<String>> {
-        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new("WITH created_tag AS (INSERT INTO tag (name, user_who_created) ");
+    pub async fn create_batch_tags(
+        pool: &PgPool,
+        tag_names: &Vec<String>,
+        o_user_id: Option<&str>,
+    ) -> FieldResult<Vec<String>> {
+        let mut query_builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("WITH created_tag AS (INSERT INTO tag (name, user_who_created) ");
 
         query_builder.push_values(tag_names, |mut b, tag_id: &String| {
             b.push_bind(tag_id)
-            .push_bind(sqlx::types::Uuid::parse_str(o_user_id.unwrap_or("")).unwrap());
+                .push_bind(sqlx::types::Uuid::parse_str(o_user_id.unwrap_or("")).unwrap());
         });
 
         query_builder.push(" ON CONFLICT DO NOTHING RETURNING *),");
@@ -47,8 +50,13 @@ impl TagModel {
             .collect())
     }
 
-    pub async fn associate_tags_to_post(pool: &PgPool, tag_names: &Vec<String>, post_id: &sqlx::types::Uuid) -> PgQueryResult {
-        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new("INSERT INTO tag_to_post (tag_name, post_id) ");
+    pub async fn associate_tags_to_post(
+        pool: &PgPool,
+        tag_names: &Vec<String>,
+        post_id: &sqlx::types::Uuid,
+    ) -> PgQueryResult {
+        let mut query_builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("INSERT INTO tag_to_post (tag_name, post_id) ");
 
         query_builder.push_values(tag_names, |mut b, tag_name: &String| {
             b.push_bind(tag_name).push_bind(post_id);
@@ -60,9 +68,13 @@ impl TagModel {
         query.execute(pool).await.unwrap()
     }
 
-
-    pub async fn remove_tag_association(pool: &PgPool, tag_names: &Vec<String>, post_id: &sqlx::types::Uuid) -> PgQueryResult {
-        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new("DELETE FROM tag_to_post WHERE post_id = ");
+    pub async fn remove_tag_association(
+        pool: &PgPool,
+        tag_names: &Vec<String>,
+        post_id: &sqlx::types::Uuid,
+    ) -> PgQueryResult {
+        let mut query_builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("DELETE FROM tag_to_post WHERE post_id = ");
         query_builder.push_bind(post_id);
         query_builder.push(" AND tag_name IN (");
         let mut separated = query_builder.separated(", ");
@@ -75,7 +87,6 @@ impl TagModel {
 
         query.execute(pool).await.unwrap()
     }
-
 
     pub async fn find_tags_for_post(pool: &PgPool, post_id: &String) -> FieldResult<Vec<TagModel>> {
         let r_posts: Vec<TagModel> = sqlx::query_as!(
@@ -91,9 +102,10 @@ impl TagModel {
         let r_tags: Vec<TagModel> = sqlx::query_as!(
             TagModel,
             "SELECT * FROM tag WHERE name LIKE $1",
-            format!("%{}%", name))
-            .fetch_all(pool)
-            .await?;
+            format!("%{}%", name)
+        )
+        .fetch_all(pool)
+        .await?;
         Ok(r_tags)
     }
 
@@ -101,11 +113,16 @@ impl TagModel {
         return Tag {
             name: self.name.clone(),
             created_at: self.created_at,
-            user_who_created: self.user_who_created.map_or_else(|| None, |id| { Some(sqlx::types::Uuid::to_string(&id)) }),
+            user_who_created: self
+                .user_who_created
+                .map_or_else(|| None, |id| Some(sqlx::types::Uuid::to_string(&id))),
         };
     }
 
     pub fn convert_all_to_gql(post_models: &Vec<TagModel>) -> Vec<Tag> {
-        return post_models.iter().map(TagModel::convert_to_gql).collect::<Vec<Tag>>();
+        return post_models
+            .iter()
+            .map(TagModel::convert_to_gql)
+            .collect::<Vec<Tag>>();
     }
 }

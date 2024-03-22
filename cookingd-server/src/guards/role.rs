@@ -1,4 +1,4 @@
-use async_graphql::{Context, Guard, Error};
+use async_graphql::{Context, Error, Guard};
 
 #[derive(Eq, PartialEq, Copy, Clone)]
 pub enum Role {
@@ -11,7 +11,7 @@ pub struct RoleGuard {
 }
 
 impl RoleGuard {
-   pub fn new(role: Role) -> Self {
+    pub fn new(role: Role) -> Self {
         Self { role }
     }
 }

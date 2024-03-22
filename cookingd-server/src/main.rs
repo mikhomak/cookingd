@@ -1,27 +1,27 @@
-use log::info;
-use actix_web::{guard, middleware, web, App, HttpRequest, HttpServer, Responder, HttpResponse};
+use actix_cors::Cors;
+use actix_files;
+use actix_web::{guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use anyhow::Result;
+use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::{EmptySubscription, Schema};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use dotenv::dotenv;
+use log::info;
 use sqlx::postgres::PgPool;
 use std::env;
-use actix_files;
 use web::Data;
-use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use actix_cors::Cors;
 
-use crate::gql_queries::Query;
 use crate::auth::index_token;
 use crate::gql_mutations::Mutations;
+use crate::gql_queries::Query;
 
-mod psql_models;
-mod gql_queries;
-mod gql_mutations;
-mod services;
-mod gql_models;
 mod auth;
+mod gql_models;
+mod gql_mutations;
+mod gql_queries;
 mod guards;
+mod psql_models;
+mod services;
 mod utils;
 
 pub type CookingSchema = Schema<Query, Mutations, EmptySubscription>;
@@ -44,7 +44,6 @@ async fn index_playground() -> HttpResponse {
         .body(playground_source(GraphQLPlaygroundConfig::new("/")))
 }
 
-
 #[actix_web::main]
 async fn main() -> Result<()> {
     dotenv().ok();
@@ -53,13 +52,12 @@ async fn main() -> Result<()> {
     let host: String = env::var("HOST").expect("HOST is not set");
     let port: String = env::var("PORT").expect("PORT is not set");
     let db_pool: PgPool = PgPool::connect(&database_url).await?;
-    sqlx::migrate!()
-        .run(&db_pool)
-        .await?;
+    sqlx::migrate!().run(&db_pool).await?;
 
-    let schema: CookingSchema = Schema::build(Query::default(), Mutations::default(), EmptySubscription)
-        .data(db_pool)
-        .finish();
+    let schema: CookingSchema =
+        Schema::build(Query::default(), Mutations::default(), EmptySubscription)
+            .data(db_pool)
+            .finish();
 
     env_logger::init();
     let f_image_dir: String = dotenv::var("IMAGES_DIR").unwrap_or("images/".to_string());
@@ -69,7 +67,10 @@ async fn main() -> Result<()> {
             .allowed_origin(env!("FRONT_URL"))
             .allowed_origin(env!("FRONT_URL_2"))
             .allowed_methods(vec!["GET", "POST"])
-            .allowed_headers(vec![http::header::AUTHORIZATION.to_string(), http::header::ACCEPT.to_string()])
+            .allowed_headers(vec![
+                http::header::AUTHORIZATION.to_string(),
+                http::header::ACCEPT.to_string(),
+            ])
             .allowed_header(http::header::CONTENT_TYPE.to_string())
             .max_age(3600);
 
@@ -84,7 +85,11 @@ async fn main() -> Result<()> {
                     .use_last_modified(true),
             )
             .service(web::resource("/").guard(guard::Post()).to(index))
-            .service(web::resource("/playground").guard(guard::Get()).to(index_playground))
+            .service(
+                web::resource("/playground")
+                    .guard(guard::Get())
+                    .to(index_playground),
+            )
             .route("/ping", web::get().to(ping))
     });
 

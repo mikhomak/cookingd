@@ -1,11 +1,11 @@
-use crate::gql_queries::UserQuery;
-use async_graphql::Object;
-use async_graphql::Context;
-use sqlx::PgPool;
-use async_graphql::FieldResult;
-use log::error;
 use crate::gql_models::user_gql_model::User;
+use crate::gql_queries::UserQuery;
 use crate::psql_models::user_psql_model::UserModel;
+use async_graphql::Context;
+use async_graphql::FieldResult;
+use async_graphql::Object;
+use log::error;
+use sqlx::PgPool;
 
 #[Object(extends)]
 impl UserQuery {
@@ -13,12 +13,17 @@ impl UserQuery {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_users : FieldResult<Vec<UserModel>> = UserModel::read_all(&pool).await;
+                let r_users: FieldResult<Vec<UserModel>> = UserModel::read_all(&pool).await;
                 match r_users {
                     Ok(users) => Ok(UserModel::convert_all_to_gql(&users)),
                     Err(error) => {
-                        error!("Users couldn't be fetched from the db due to error {}", error.message);
-                        Err(async_graphql::Error::new("Users not found, error encountered"))
+                        error!(
+                            "Users couldn't be fetched from the db due to error {}",
+                            error.message
+                        );
+                        Err(async_graphql::Error::new(
+                            "Users not found, error encountered",
+                        ))
                     }
                 }
             }
@@ -37,8 +42,13 @@ impl UserQuery {
                 match r_user {
                     Ok(users) => Ok(UserModel::convert_to_gql(&users)),
                     Err(error) => {
-                        error!("User with id {} not found due to error {}", id, error.message);
-                        Err(async_graphql::Error::new("User not found, error encountered"))
+                        error!(
+                            "User with id {} not found due to error {}",
+                            id, error.message
+                        );
+                        Err(async_graphql::Error::new(
+                            "User not found, error encountered",
+                        ))
                     }
                 }
             }

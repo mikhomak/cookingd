@@ -1,20 +1,20 @@
+use crate::auth::CookingdClaims;
+use crate::gql_models::post_gql_model::Post;
+use crate::gql_mutations::PostMutations;
+use crate::guards::role::Role;
+use crate::guards::role::RoleGuard;
+use crate::psql_models::post_psql_model::PostModel;
+use crate::psql_models::tag_psql_model::TagModel;
+use crate::services::image_service;
+use crate::services::site_configuration_service::is_posting_allowed;
+use crate::utils;
+use anyhow::Error;
 use async_graphql::{Context, FieldResult, InputObject, Upload};
 use log::{error, info};
 use sqlx::PgPool;
-use uuid::Uuid;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-use anyhow::Error;
-use crate::gql_models::post_gql_model::Post;
-use crate::services::site_configuration_service::is_posting_allowed;
-use crate::psql_models::post_psql_model::PostModel;
-use crate::gql_mutations::PostMutations;
-use crate::psql_models::tag_psql_model::TagModel;
-use crate::guards::role::RoleGuard;
-use crate::guards::role::Role;
-use crate::auth::CookingdClaims;
-use crate::services::image_service;
-use crate::utils;
+use uuid::Uuid;
 
 #[derive(InputObject)]
 pub struct PostCreationInput {
@@ -52,15 +52,28 @@ impl PostMutations {
                 let r_user = ctx.data::<CookingdClaims>();
                 match r_user {
                     Ok(user_claims) => {
-                        let r_created_post: FieldResult<PostModel> = PostModel::create(&pool, ctx,&post_input, &user_claims.id).await;
+                        let r_created_post: FieldResult<PostModel> =
+                            PostModel::create(&pool, ctx, &post_input, &user_claims.id).await;
 
                         match r_created_post {
                             Ok(created_post) => {
                                 if let Some(ref tags) = post_input.tags {
-                                    let _ = create_and_associate_tags_with_post_uuid(&pool, &created_post.id, &tags, Some(&user_claims.id)).await;
+                                    let _ = create_and_associate_tags_with_post_uuid(
+                                        &pool,
+                                        &created_post.id,
+                                        &tags,
+                                        Some(&user_claims.id),
+                                    )
+                                    .await;
                                 }
 
-                                store_image(post_input, &created_post.id.to_string(), &user_claims.id, ctx).await?;
+                                store_image(
+                                    post_input,
+                                    &created_post.id.to_string(),
+                                    &user_claims.id,
+                                    ctx,
+                                )
+                                .await?;
 
                                 Ok(PostModel::convert_to_gql(&created_post))
                             }
@@ -71,7 +84,9 @@ impl PostMutations {
                         }
                     }
                     Err(_) => {
-                        error!("Cannot create a post due to the user not being present in the context");
+                        error!(
+                            "Cannot create a post due to the user not being present in the context"
+                        );
                         Err(async_graphql::Error::new("Posting failed! Bad user"))
                     }
                 }
@@ -83,7 +98,6 @@ impl PostMutations {
         }
     }
 
-
     async fn assign_tags(
         &self,
         ctx: &Context<'_>,
@@ -93,7 +107,8 @@ impl PostMutations {
 
         match r_pool {
             Ok(pool) => {
-                create_and_associate_tags(&pool, &tag_input.post_id, &tag_input.tag_names, None).await?;
+                create_and_associate_tags(&pool, &tag_input.post_id, &tag_input.tag_names, None)
+                    .await?;
                 Ok(true)
             }
             Err(_) => {
@@ -102,7 +117,6 @@ impl PostMutations {
             }
         }
     }
-
 
     async fn remove_tags(
         &self,
@@ -113,7 +127,8 @@ impl PostMutations {
 
         match r_pool {
             Ok(pool) => {
-                let post_uuid: sqlx::types::Uuid = sqlx::types::Uuid::parse_str(&tag_input.post_id).unwrap();
+                let post_uuid: sqlx::types::Uuid =
+                    sqlx::types::Uuid::parse_str(&tag_input.post_id).unwrap();
                 TagModel::remove_tag_association(pool, &tag_input.tag_names, &post_uuid).await;
                 Ok(true)
             }
@@ -124,25 +139,25 @@ impl PostMutations {
         }
     }
 
-    async fn delete_post(
-        &self,
-        ctx: &Context<'_>,
-        post_id: String,
-    ) -> FieldResult<bool> {
+    async fn delete_post(&self, ctx: &Context<'_>, post_id: String) -> FieldResult<bool> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         if let Ok(pool) = r_pool {
-           match PostModel::delete_post_for_id(pool, &post_id).await {
-               Ok(_) => {Ok(true)}
-               Err(_) => {Ok(false)}
-           }
-        }
-        else{
-                Err(utils::error_database_not_setup())
+            match PostModel::delete_post_for_id(pool, &post_id).await {
+                Ok(_) => Ok(true),
+                Err(_) => Ok(false),
+            }
+        } else {
+            Err(utils::error_database_not_setup())
         }
     }
 }
 
-async fn create_and_associate_tags(pool: &PgPool, post_id: &String, tags: &Vec<String>, user_id: Option<&str>) -> Result<(), async_graphql::Error> {
+async fn create_and_associate_tags(
+    pool: &PgPool,
+    post_id: &String,
+    tags: &Vec<String>,
+    user_id: Option<&str>,
+) -> Result<(), async_graphql::Error> {
     let r_post_uuid: Result<Uuid, _> = Uuid::parse_str(post_id);
     match r_post_uuid {
         Ok(post_uuid) => {
@@ -155,10 +170,13 @@ async fn create_and_associate_tags(pool: &PgPool, post_id: &String, tags: &Vec<S
     }
 }
 
-async fn create_and_associate_tags_with_post_uuid(pool: &PgPool, post_uuid: &Uuid, tags: &Vec<String>, user_id: Option<&str>) -> Result<(), async_graphql::Error> {
-    let r_created_tags = TagModel::create_batch_tags(
-        &pool,
-        &tags, user_id).await;
+async fn create_and_associate_tags_with_post_uuid(
+    pool: &PgPool,
+    post_uuid: &Uuid,
+    tags: &Vec<String>,
+    user_id: Option<&str>,
+) -> Result<(), async_graphql::Error> {
+    let r_created_tags = TagModel::create_batch_tags(&pool, &tags, user_id).await;
     match r_created_tags {
         Ok(created_tags) => {
             TagModel::associate_tags_to_post(&pool, &created_tags, &post_uuid).await;
@@ -171,7 +189,12 @@ async fn create_and_associate_tags_with_post_uuid(pool: &PgPool, post_uuid: &Uui
     }
 }
 
-async fn store_image(post_input: PostCreationInput, post_uid_as_str: &str, user_guid_as_str: &str, ctx: &Context<'_>) -> Result<(), Error> {
+async fn store_image(
+    post_input: PostCreationInput,
+    post_uid_as_str: &str,
+    user_guid_as_str: &str,
+    ctx: &Context<'_>,
+) -> Result<(), Error> {
     if let Some(main_image) = post_input.main_image {
         if let Ok(main_image_value) = main_image.value(ctx) {
             let image_type: &str = &*main_image_value.content_type.unwrap();
@@ -180,14 +203,14 @@ async fn store_image(post_input: PostCreationInput, post_uid_as_str: &str, user_
 
             let f_image_dir: String = dotenv::var("IMAGES_DIR").unwrap_or("images/".to_string());
 
-            let image_user_dir: String = image_service::construct_image_user_dir(&*post_uid_as_str, user_guid_as_str)?;
-            let image_name: String = image_service::construct_image_title(mapped_image_type.unwrap().as_str())?;
+            let image_user_dir: String =
+                image_service::construct_image_user_dir(&*post_uid_as_str, user_guid_as_str)?;
+            let image_name: String =
+                image_service::construct_image_title(mapped_image_type.unwrap().as_str())?;
 
             info!("trying to create an image in [{0}]", f_image_dir);
 
-            let dir: String = format!("{}/{}",
-                                      f_image_dir,
-                                      image_user_dir);
+            let dir: String = format!("{}/{}", f_image_dir, image_user_dir);
             info!("trying to create a directory [{0}]", dir.clone());
             match tokio::fs::create_dir_all(dir.clone()).await {
                 Ok(_) => {
@@ -196,22 +219,29 @@ async fn store_image(post_input: PostCreationInput, post_uid_as_str: &str, user_
                             match created_file.write_all(&main_image_value.content).await {
                                 Ok(_) => {}
                                 Err(error) => {
-                                    error!("Error while writing to the file, error - [{0}]", error.to_string())
+                                    error!(
+                                        "Error while writing to the file, error - [{0}]",
+                                        error.to_string()
+                                    )
                                 }
                             };
                         }
                         Err(error) => {
-                            error!("Error while creating file, error - [{0}]", error.to_string())
+                            error!(
+                                "Error while creating file, error - [{0}]",
+                                error.to_string()
+                            )
                         }
                     };
                 }
                 Err(error) => {
-                    error!("Error while creating an dir, error -  [{0}]", error.to_string())
+                    error!(
+                        "Error while creating an dir, error -  [{0}]",
+                        error.to_string()
+                    )
                 }
             };
-
         }
     }
     Ok(())
 }
-

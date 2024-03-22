@@ -1,4 +1,4 @@
-use async_graphql::{ComplexObject, SimpleObject, Context, FieldResult};
+use async_graphql::{ComplexObject, Context, FieldResult, SimpleObject};
 use chrono;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -21,20 +21,20 @@ pub struct User {
 
 #[ComplexObject]
 impl User {
-    async fn posts(
-        &self,
-        ctx: &Context<'_>,
-    ) -> FieldResult<Vec<Post>> {
+    async fn posts(&self, ctx: &Context<'_>) -> FieldResult<Vec<Post>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
         match r_pool {
             Ok(pool) => {
-                let r_posts: FieldResult<Vec<PostModel>> = PostModel::find_posts_for_user(pool, &self.id.to_string()).await;
+                let r_posts: FieldResult<Vec<PostModel>> =
+                    PostModel::find_posts_for_user(pool, &self.id.to_string()).await;
                 match r_posts {
                     Ok(post_models) => Ok(PostModel::convert_all_to_gql(&post_models)),
-                    Err(_) => Err(async_graphql::Error::new("Posts not found!"))
+                    Err(_) => Err(async_graphql::Error::new("Posts not found!")),
                 }
             }
-            Err(_) => { Err(async_graphql::Error::new("Users not found, error encountered")) }
+            Err(_) => Err(async_graphql::Error::new(
+                "Users not found, error encountered",
+            )),
         }
     }
 }

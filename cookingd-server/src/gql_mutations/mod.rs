@@ -1,8 +1,8 @@
 use async_graphql::MergedObject;
 
-pub mod user_mutation;
-pub mod post_mutation;
 pub mod login_mutation;
+pub mod post_mutation;
+pub mod user_mutation;
 
 #[derive(Default)]
 pub struct UserMutations;

@@ -1,15 +1,15 @@
-use actix_web::http::header::HeaderMap;
-use actix_web::{HttpRequest, web};
-use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
-use crate::CookingSchema;
 use crate::guards::role::Role;
+use crate::CookingSchema;
+use actix_web::http::header::HeaderMap;
+use actix_web::{web, HttpRequest};
+use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 
 pub struct Token(pub String);
 
-use serde::{Serialize, Deserialize};
-use jsonwebtoken::{encode, decode, Header,  Validation, EncodingKey, DecodingKey, TokenData};
 use jsonwebtoken::errors::Error;
-use log::{error};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
+use log::error;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CookingdClaims {
@@ -38,11 +38,13 @@ pub async fn index_token(
                 request = request.data(Role::User);
             }
             Err(error) => {
-                error!("Cannot decode a token for the user with token [{}] due to error [{}]", &token.0, error);
+                error!(
+                    "Cannot decode a token for the user with token [{}] due to error [{}]",
+                    &token.0, error
+                );
                 request = request.data(Role::Anon);
             }
         };
-
     } else {
         request = request.data(Role::Anon);
     }
@@ -50,18 +52,27 @@ pub async fn index_token(
     schema.execute(request).await.into()
 }
 
-
 pub fn create_token(id: &String, email: &String) -> Result<String, Error> {
     let my_claims = CookingdClaims {
         id: id.clone(),
         email: email.clone(),
         exp: 100000000000000,
     };
-    let token = encode(&Header::default(), &my_claims, &EncodingKey::from_secret(env!("AUTH_SECRET").as_ref()))?;
+    let auth_secret = dotenv::var("AUTH_SECRET").expect("Auth secret is not set!");
+    let token = encode(
+        &Header::default(),
+        &my_claims,
+        &EncodingKey::from_secret(auth_secret.as_ref()),
+    )?;
     Ok(token)
 }
 
 pub fn get_token(token: &String) -> Result<TokenData<CookingdClaims>, Error> {
-    let token = decode::<CookingdClaims>(token, &DecodingKey::from_secret(env!("AUTH_SECRET").as_ref()), &Validation::default())?;
+    let auth_secret = dotenv::var("AUTH_SECRET").expect("Auth secret is not set!");
+    let token = decode::<CookingdClaims>(
+        token,
+        &DecodingKey::from_secret(auth_secret.as_ref()),
+        &Validation::default(),
+    )?;
     Ok(token)
 }

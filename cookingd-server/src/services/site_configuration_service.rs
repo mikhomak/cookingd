@@ -11,20 +11,19 @@ struct SiteConfiguration {
 }
 
 pub async fn is_registration_enabled(pg_pool: &PgPool) -> bool {
-    let r_allow_registration : Result<bool, _> = sqlx::query_scalar!(
-        "SELECT allow_registration FROM site_configuration")
-        .fetch_one(pg_pool)
-        .await;
+    let r_allow_registration: Result<bool, _> =
+        sqlx::query_scalar!("SELECT allow_registration FROM site_configuration")
+            .fetch_one(pg_pool)
+            .await;
 
     r_allow_registration.unwrap_or_else(|_| false)
 }
 
-
 pub async fn is_posting_allowed(pg_pool: &PgPool) -> bool {
-    let r_allow_posting : Result<bool, _> = sqlx::query_scalar!(
-        "SELECT allow_posting FROM site_configuration")
-        .fetch_one(pg_pool)
-        .await;
+    let r_allow_posting: Result<bool, _> =
+        sqlx::query_scalar!("SELECT allow_posting FROM site_configuration")
+            .fetch_one(pg_pool)
+            .await;
 
     r_allow_posting.unwrap_or_else(|_| false)
 }

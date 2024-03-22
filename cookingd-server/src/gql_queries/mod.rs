@@ -1,9 +1,9 @@
 use async_graphql::MergedObject;
 
-mod user_query;
+mod login_query;
 mod post_query;
 mod tag_query;
-mod login_query;
+mod user_query;
 
 #[derive(Default)]
 pub struct UserQuery;
