@@ -70,7 +70,7 @@ onError(errors => {
             <div>
                 <label for="input_password">password</label>
                 <br />
-                <input id="input_password" type="text" v-model="password" />
+                <input id="input_password" type="password" v-model="password" />
             </div>
 
             <div>
