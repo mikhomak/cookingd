@@ -21,6 +21,7 @@ const props = defineProps({
       <RouterLink to="">{{ props.post.title }}</RouterLink>
     </h3>
     <div style="margin-bottom: 5px;">
+      author: <b>{{ props.post.user.name }}</b> <br/>
       <i>rating : {{ props.post.rating }}/5</i>
       <i style="float: right;">{{ new Date(props.post.createdAt).toLocaleDateString(
         'en-GB', {

@@ -21,6 +21,9 @@ const LATEST_POSTS_QUERY = gql`
     tags{
       name
     }
+    user{
+      name
+    }
   }
 }
 `

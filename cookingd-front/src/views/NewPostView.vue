@@ -8,7 +8,7 @@ const title = ref('');
 const text = ref('');
 const ingridents = ref('');
 const input_tag = ref('');
-const rating = ref(5);
+const rating = ref(1);
 const tags: Ref<Set<String>> = ref(new Set())
 const image = ref(null);
 
@@ -45,6 +45,11 @@ async function uploadPhoto({ target }) {
     image.value = target.files[0];
 }
 
+function setRating(newRating: number, event: Event){
+    event.preventDefault();
+    rating.value = newRating;
+}
+
 
 </script>
 
@@ -73,8 +78,11 @@ async function uploadPhoto({ target }) {
 
                 <div>
                     <label for="input_rating">rating</label>
-                    <br />
-                    <input id="input_rating" type="number" v-model="rating" max="5" min="1"/>
+                    <button class="btn_rating" id="rating_1" v-bind:disabled="rating === 1" @click="setRating(1, $event)">1</button>
+                    <button class="btn_rating" id="rating_2" v-bind:disabled="rating === 2" @click="setRating(2, $event)">2</button>
+                    <button class="btn_rating" id="rating_3" v-bind:disabled="rating === 3" @click="setRating(3, $event)">3</button>
+                    <button class="btn_rating" id="rating_4" v-bind:disabled="rating === 4" @click="setRating(4, $event)">4</button>
+                    <button class="btn_rating" id="rating_5" v-bind:disabled="rating === 5" @click="setRating(5, $event)">5</button>
                 </div>
 
                 <div>
@@ -118,5 +126,12 @@ async function uploadPhoto({ target }) {
 <style scoped>
 div {
     padding-bottom: 10px;
+}
+.btn_rating {
+    margin: 3px;
+}
+.btn_rating:disabled{
+    color: red;
+    background-color: lightgreen;
 }
 </style>

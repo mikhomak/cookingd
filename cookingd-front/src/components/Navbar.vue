@@ -17,6 +17,7 @@ function logout() {
 <template>
   <nav>
     <h3>Cookingd</h3>
+    <h4>your personal cooking diary</h4>
     <RouterLink to="/">Home</RouterLink>
     <RouterLink v-if="userStore.isLoggedIn" to="/my-account">My Account [{{ userStore.user.name }}]</RouterLink>
     <RouterLink to="/About">About</RouterLink>

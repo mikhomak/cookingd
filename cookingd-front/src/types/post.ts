@@ -6,7 +6,10 @@ type Post = {
   rating: Number,
   likes: Number,
   createdAt: Date,
-  tags: Tag[]
+  tags: Tag[],
+  user: {
+    name: String
+  }
 }
 
 type Tag = {
