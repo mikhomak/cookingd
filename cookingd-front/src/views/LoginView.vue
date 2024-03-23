@@ -42,7 +42,7 @@ onDone((result) => {
     };
     if (rememberMe.value) {
 // @ts-ignore
-        VueCookies.set('remember_me', result.data.login.token);
+        VueCookies.set('remember_me', result.data.login.token, "30d");
     }
     router.push({ path: '/' })
 })
