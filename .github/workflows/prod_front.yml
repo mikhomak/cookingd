@@ -13,6 +13,8 @@ jobs:
     environment: prod
     env:
       ENV_FRONT_FILE : ${{secrets.ENV_FRONT_FILE}}
+      CERT : ${{secrets.CERT}}
+      CERT_KEY : ${{secrets.CERT_KEY}}
 
     steps:
     - name: Checkout code
@@ -27,7 +29,7 @@ jobs:
     - name: Create cert file
       working-directory: ./cookingd-front
       run: |
-          touch cert.crt
+          touch cert.pem
           echo "$CERT" > cert.pem
 
     - name: Create cert key file

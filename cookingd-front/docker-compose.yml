@@ -9,3 +9,4 @@ services:
       - .env
     ports:
       - "80:80"
+      - "81:81"
