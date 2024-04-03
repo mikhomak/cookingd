@@ -66,6 +66,7 @@ async fn main() -> Result<()> {
         let cors = Cors::default()
             .allowed_origin(env!("FRONT_URL"))
             .allowed_origin(env!("FRONT_URL_2"))
+            .allowed_origin(env!("FRONT_URL_3"))
             .allowed_methods(vec!["GET", "POST"])
             .allowed_headers(vec![
                 http::header::AUTHORIZATION.to_string(),

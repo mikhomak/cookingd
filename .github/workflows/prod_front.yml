@@ -24,6 +24,18 @@ jobs:
           touch .env
           echo "$ENV_FRONT_FILE" > .env
 
+    - name: Create cert file
+      working-directory: ./cookingd-front
+      run: |
+          touch cert.crt
+          echo "$CERT" > cert.pem
+
+    - name: Create cert key file
+      working-directory: ./cookingd-front
+      run: |
+          touch cert.key
+          echo "$CERT_KEY" > cert.key
+
     - name: Build
       working-directory: ./cookingd-front
       run: |
