@@ -64,9 +64,10 @@ async fn main() -> Result<()> {
 
     let server = HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin(env!("FRONT_URL"))
-            .allowed_origin(env!("FRONT_URL_2"))
-            .allowed_origin(env!("FRONT_URL_3"))
+           // .allowed_origin(env!("FRONT_URL"))
+            //.allowed_origin(env!("FRONT_URL_2"))
+            //.allowed_origin(env!("FRONT_URL_3"))
+            .send_wildcard()
             .allowed_methods(vec!["GET", "POST"])
             .allowed_headers(vec![
                 http::header::AUTHORIZATION.to_string(),
