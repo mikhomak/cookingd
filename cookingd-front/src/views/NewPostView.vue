@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/useUserStore';
 import { useMutation } from '@vue/apollo-composable'
-import gql from 'graphql-tag'
 import { ref, type Ref } from 'vue';
+import gql from 'graphql-tag'
+import { useQuery } from '@vue/apollo-composable'
 
 const title = ref('');
 const text = ref('');
@@ -45,11 +45,23 @@ async function uploadPhoto({ target }) {
     image.value = target.files[0];
 }
 
-function setRating(newRating: number, event: Event){
+function setRating(newRating: number, event: Event) {
     event.preventDefault();
     rating.value = newRating;
 }
 
+// tags
+
+
+const ALL_TAGS_QUERY = gql`
+  query{
+  allTags{
+    name
+    }
+  }
+`
+
+const { result: tag_result, loading: tag_loading } = useQuery(ALL_TAGS_QUERY);
 
 </script>
 
@@ -78,27 +90,53 @@ function setRating(newRating: number, event: Event){
 
                 <div>
                     <label for="input_rating">rating</label>
-                    <button class="btn_rating" id="rating_1" v-bind:disabled="rating === 1" @click="setRating(1, $event)">1</button>
-                    <button class="btn_rating" id="rating_2" v-bind:disabled="rating === 2" @click="setRating(2, $event)">2</button>
-                    <button class="btn_rating" id="rating_3" v-bind:disabled="rating === 3" @click="setRating(3, $event)">3</button>
-                    <button class="btn_rating" id="rating_4" v-bind:disabled="rating === 4" @click="setRating(4, $event)">4</button>
-                    <button class="btn_rating" id="rating_5" v-bind:disabled="rating === 5" @click="setRating(5, $event)">5</button>
+                    <button class="btn_rating" id="rating_1" v-bind:disabled="rating === 1"
+                        @click="setRating(1, $event)">1</button>
+                    <button class="btn_rating" id="rating_2" v-bind:disabled="rating === 2"
+                        @click="setRating(2, $event)">2</button>
+                    <button class="btn_rating" id="rating_3" v-bind:disabled="rating === 3"
+                        @click="setRating(3, $event)">3</button>
+                    <button class="btn_rating" id="rating_4" v-bind:disabled="rating === 4"
+                        @click="setRating(4, $event)">4</button>
+                    <button class="btn_rating" id="rating_5" v-bind:disabled="rating === 5"
+                        @click="setRating(5, $event)">5</button>
                 </div>
 
                 <div>
                     <label for="input_tag">Tags</label>
+                    <ul style="margin-top: 10px; columns:2; padding-left: 0;">
+                        <li v-if="!loading" v-for="tag in tag_result.allTags" style="
+                        margin: 7px 0 7px;
+                        list-style-type: none;">
+                            <span style="
+                        color:cadetblue;
+                        background-color: azure; 
+                        padding: 3px;
+                        border: 1px solid black;
+                        " @click="(event) => {
+            event.preventDefault();
+            tags.add(tag.name);
+        }">{{ tag.name }}</span>
+                        </li>
+
+                        <div v-else-if="loading">
+                            <h3 style="color: greenyellow">Loading posts...</h3>
+                        </div>
+                    </ul>
+
                     <li v-if="tags.size !== 0" v-for="tag in tags" style=" list-style-type: none;">
                         <span>{{ tag }}</span><button @click="(event) => {
-                            tags.delete(tag);
-                        }">X</button>
+            event.preventDefault();
+            tags.delete(tag);
+        }">X</button>
                     </li>
                     <br />
                     <input id="input_tag" type="text" v-model="input_tag" />
                     <button id="btn_tag_submit" @click="(event) => {
-                        event.preventDefault();
-                        tags.add(input_tag);
-                        input_tag = '';
-                    }" :disabled="input_tag === ''">add tag</button>
+            event.preventDefault();
+            tags.add(input_tag);
+            input_tag = '';
+        }" :disabled="input_tag === ''">add tag</button>
                 </div>
 
                 <div>
@@ -127,10 +165,12 @@ function setRating(newRating: number, event: Event){
 div {
     padding-bottom: 10px;
 }
+
 .btn_rating {
     margin: 3px;
 }
-.btn_rating:disabled{
+
+.btn_rating:disabled {
     color: red;
     background-color: lightgreen;
 }
