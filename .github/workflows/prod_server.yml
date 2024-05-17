@@ -48,15 +48,4 @@ jobs:
           docker-compose down api
           docker-compose down bd
           docker-compose build
-
-  deploy:
-    runs-on: self-hosted 
-    needs: build
-    environment: prod
-    env:
-      ENV_FILE : ${{secrets.ENV_FILE}}
-    steps:
-    - name: Deploy
-      working-directory: ./cookingd-server
-      run: |
           docker-compose up -d

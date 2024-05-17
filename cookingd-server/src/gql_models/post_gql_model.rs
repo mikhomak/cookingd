@@ -85,8 +85,8 @@ impl Post {
         match r_full_url {
             Ok(full_url) => match Path::new(&r_full_dir.unwrap()).exists() {
                 true => Ok(Some(format!(
-                    "http://{}:{}/{}",
-                    backend_url, port, full_url
+                    "{}/{}",
+                    backend_url, full_url
                 ))),
                 false => Ok(None),
             },

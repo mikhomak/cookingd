@@ -79,7 +79,7 @@ async fn main() -> Result<()> {
             .app_data(Data::new(schema.clone()))
             .wrap(middleware::Logger::default())
             .wrap(cors)
-            .service(web::resource("/").guard(guard::Post()).to(index_token))
+            .service(web::resource("/api").guard(guard::Post()).to(index_token))
             .service(
                 actix_files::Files::new("/images", f_image_dir.clone())
                     .show_files_listing()
