@@ -43,15 +43,4 @@ jobs:
       run: |
           docker-compose down front
           docker-compose build
-  
-  deploy:
-    env:
-      ENV_FRONT_FILE : ${{secrets.ENV_FRONT_FILE}}
-    needs: build
-    runs-on: self-hosted 
-    environment: prod
-    steps:
-    - name: Deploy
-      working-directory: ./cookingd-front
-      run: |
           docker-compose up -d
