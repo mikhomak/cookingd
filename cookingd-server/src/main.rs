@@ -81,7 +81,7 @@ async fn main() -> Result<()> {
             .wrap(cors)
             .service(web::resource("/api").guard(guard::Post()).to(index_token))
             .service(
-                actix_files::Files::new("/images", f_image_dir.clone())
+                actix_files::Files::new("/api/images", f_image_dir.clone())
                     .show_files_listing()
                     .use_last_modified(true),
             )

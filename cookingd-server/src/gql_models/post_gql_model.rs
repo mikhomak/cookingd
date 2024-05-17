@@ -73,7 +73,7 @@ impl Post {
             &self.id.to_string(),
             &self.user_id.to_string(),
             Some(image_type.as_str()),
-            "images/",
+            "images",
         );
         let f_image_dir: String = dotenv::var("IMAGES_DIR").unwrap_or("images/".to_string());
         let r_full_dir = image_service::construct_full_image_path(
