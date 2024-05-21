@@ -24,7 +24,10 @@ pub struct User {
 impl User {
     async fn posts(&self, ctx: &Context<'_>) -> FieldResult<Vec<Post>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
+
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_posts: FieldResult<Vec<PostModel>> =
             PostModel::find_posts_for_user(pool, &self.id.to_string()).await;

@@ -12,9 +12,10 @@ use crate::utils;
 impl PostQuery {
     async fn latest_posts<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<Post>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_posts: FieldResult<Vec<PostModel>> = PostModel::get_latest_posts(&pool).await;
         match r_posts {
@@ -37,10 +38,10 @@ impl PostQuery {
         user_id: String,
     ) -> FieldResult<Vec<Post>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-
-
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_posts: FieldResult<Vec<PostModel>> =
             PostModel::find_posts_for_user(&pool, &user_id).await;
@@ -60,8 +61,10 @@ impl PostQuery {
 
     async fn post_for_id<'a>(&self, ctx: &'a Context<'_>, post_id: String) -> FieldResult<Post> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_post: FieldResult<PostModel> =
             PostModel::find_post_for_id(&pool, &post_id).await;

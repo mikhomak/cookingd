@@ -20,17 +20,17 @@ impl LoginQuery {
     ) -> FieldResult<LoginInfo> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
-
-
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_token: Result<TokenData<CookingdClaims>, jsonwebtoken::errors::Error> =
             get_token(&token);
 
-        let token_data = r_token.map_err(|_| {
-            return Err::<CookingdClaims, async_graphql::Error>(async_graphql::Error::new("[LOGIN_004] Cannot verify the token")
+        let Ok(token_data) = r_token else {
+            return Err(async_graphql::Error::new("[LOGIN_004] Cannot verify the token")
                 .extend_with(|_, e| e.set("error_code", "LOGIN_004")));
-        }).unwrap();
+        };
 
         let email: String = token_data.claims.email;
         let r_user_model: Result<UserModel, _> =

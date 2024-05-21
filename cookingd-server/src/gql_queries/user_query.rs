@@ -12,9 +12,10 @@ use crate::utils;
 impl UserQuery {
     async fn users<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<User>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_users: FieldResult<Vec<UserModel>> = UserModel::read_all(&pool).await;
         match r_users {
@@ -33,7 +34,10 @@ impl UserQuery {
 
     async fn user<'a>(&self, ctx: &'a Context<'_>, id: String) -> FieldResult<User> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
+
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_user: FieldResult<UserModel> = UserModel::read_one(&pool, &id).await;
         match r_user {

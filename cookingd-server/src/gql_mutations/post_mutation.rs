@@ -41,9 +41,10 @@ impl PostMutations {
         post_input: PostCreationInput,
     ) -> FieldResult<Post> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let is_registration_enabled: bool = is_posting_allowed(pool).await;
         if is_registration_enabled == false {
@@ -94,8 +95,10 @@ impl PostMutations {
         tag_input: TagAssignationInput,
     ) -> FieldResult<bool> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         create_and_associate_tags(&pool, &tag_input.post_id, &tag_input.tag_names, None)
             .await?;
@@ -108,7 +111,10 @@ impl PostMutations {
         tag_input: TagAssignationInput,
     ) -> FieldResult<bool> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
+
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let post_uuid: sqlx::types::Uuid =
             sqlx::types::Uuid::parse_str(&tag_input.post_id).unwrap();

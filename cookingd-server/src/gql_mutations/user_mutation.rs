@@ -25,10 +25,10 @@ impl UserMutations {
         user_input: UserRegistrationInput,
     ) -> FieldResult<User> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-
-
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let is_registration_enabled: bool = is_registration_enabled(pool).await;
         if is_registration_enabled == false {
@@ -50,10 +50,10 @@ impl UserMutations {
     async fn delete_user(&self, ctx: &Context<'_>, id: ID) -> FieldResult<bool> {
         let r_pool: Result<&PgPool, _> = ctx.data::<PgPool>();
         let id: String = id.parse::<String>()?;
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-
-
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_delete: Result<(), _> = UserModel::delete(&pool, &id).await;
         match r_delete {
@@ -74,8 +74,10 @@ impl UserMutations {
     async fn update_user(&self, ctx: &Context<'_>, id: ID, name: String) -> FieldResult<User> {
         let id = id.parse::<String>()?;
         let r_pool = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_user: FieldResult<UserModel> = UserModel::update(&pool, &id, &name).await;
         match r_user {

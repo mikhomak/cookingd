@@ -15,10 +15,10 @@ impl TagQuery {
     #[graphql(guard = "RoleGuard::new(Role::User)")]
     async fn all_tags<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<Tag>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-
-
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_tag_models: FieldResult<Vec<TagModel>> = TagModel::get_all(pool).await;
         match r_tag_models {
@@ -35,9 +35,10 @@ impl TagQuery {
 
     async fn tag_by_name<'a>(&self, ctx: &'a Context<'_>, name: String) -> FieldResult<Vec<Tag>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
 
         let r_tag_models: FieldResult<Vec<TagModel>> =
             TagModel::find_tags_for_name(pool, &name).await;
