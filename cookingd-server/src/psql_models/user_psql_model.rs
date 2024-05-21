@@ -6,7 +6,7 @@ use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 
-#[derive(FromRow, Deserialize, Serialize)]
+#[derive(FromRow, Deserialize, Serialize, Debug)]
 pub struct UserModel {
     pub id: sqlx::types::Uuid,
     pub name: String,

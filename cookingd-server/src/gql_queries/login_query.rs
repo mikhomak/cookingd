@@ -8,6 +8,8 @@ use async_graphql::{Context, ErrorExtensions, FieldResult, Object};
 use jsonwebtoken::TokenData;
 use log::error;
 use sqlx::PgPool;
+use crate::utils;
+
 #[Object(extends)]
 impl LoginQuery {
     #[graphql(guard = "RoleGuard::new(Role::Anon)")]
@@ -18,43 +20,35 @@ impl LoginQuery {
     ) -> FieldResult<LoginInfo> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
-        match r_pool {
-            Ok(pool) => {
-                let r_token: Result<TokenData<CookingdClaims>, jsonwebtoken::errors::Error> =
-                    get_token(&token);
-                match r_token {
-                    Ok(token_data) => {
-                        let email: String = token_data.claims.email;
-                        let r_user_model: Result<UserModel, _> =
-                            UserModel::find_for_email(pool, &email).await;
-                        match r_user_model {
-                            Ok(user_model) => Ok(LoginInfo {
-                                token,
-                                user: UserModel::convert_to_gql(&user_model),
-                            }),
-                            Err(error) => {
-                                error!(
+        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
+
+
+
+        let r_token: Result<TokenData<CookingdClaims>, jsonwebtoken::errors::Error> =
+            get_token(&token);
+
+        let token_data = r_token.map_err(|_| {
+            return Err::<CookingdClaims, async_graphql::Error>(async_graphql::Error::new("[LOGIN_004] Cannot verify the token")
+                .extend_with(|_, e| e.set("error_code", "LOGIN_004")));
+        }).unwrap();
+
+        let email: String = token_data.claims.email;
+        let r_user_model: Result<UserModel, _> =
+            UserModel::find_for_email(pool, &email).await;
+        match r_user_model {
+            Ok(user_model) => Ok(LoginInfo {
+                token,
+                user: UserModel::convert_to_gql(&user_model),
+            }),
+            Err(error) => {
+                error!(
                                     "Cannot create a token for the user with id {} due to error {}",
                                     email.clone(),
                                     error.message
                                 );
-                                Err(async_graphql::Error::new(
-                                    "[LOGIN_003] Cannot find a user from token!",
-                                )
-                                .extend_with(|_, e| e.set("error_code", "LOGIN_003")))
-                            }
-                        }
-                    }
-                    Err(_) => Err(
-                        async_graphql::Error::new("[LOGIN_004] Cannot verify the token")
-                            .extend_with(|_, e| e.set("error_code", "LOGIN_004")),
-                    ),
-                }
-            }
-            Err(_) => {
-                error!("Error at logging a user. Database is not set in context!");
-                Err(async_graphql::Error::new("[SERVER_001] Server error!")
-                    .extend_with(|_, e| e.set("error_code", "SERVER_001")))
+                Err(async_graphql::Error::new(
+                    "[LOGIN_003] Cannot find a user from token!",
+                ).extend_with(|_, e| e.set("error_code", "LOGIN_003")))
             }
         }
     }

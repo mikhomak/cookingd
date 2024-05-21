@@ -29,42 +29,34 @@ impl LoginMutations {
     async fn login(&self, ctx: &Context<'_>, login_input: LoginInput) -> FieldResult<LoginInfo> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
-        if let Ok(pool) = r_pool {
-            let r_user_model: Result<UserModel, _> =
-                UserModel::find_for_email(pool, &login_input.email).await;
-            match r_user_model {
-                Ok(user_model) => {
-                    let r_token: Result<String, jsonwebtoken::errors::Error> =
-                        create_token(&user_model.id.to_string(), &user_model.email);
-                    match r_token {
-                        Ok(token) => Ok(LoginInfo {
-                            token,
-                            user: UserModel::convert_to_gql(&user_model),
-                        }),
-                        Err(error) => {
-                            error!(
-                                "Cannot create a token for the user with id [{}] due to error [{}]",
-                                login_input.email.clone(),
-                                error.to_string()
-                            );
-                            Err(
-                                async_graphql::Error::new("[LOGIN_002] Cannot create a token!")
-                                    .extend_with(|_, e| e.set("error_code", "LOGIN_002")),
-                            )
-                        }
-                    }
-                }
-                Err(error) => {
-                    error!(
-                        "Cannot login a user with id {} due to error {}",
-                        login_input.email, error.message
-                    );
-                    Err(async_graphql::Error::new("[LOGIN_001] Cannot find a user!")
-                        .extend_with(|_, e| e.set("error_code", "LOGIN_001")))
-                }
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
+
+        let r_user_model: Result<UserModel, _> =
+            UserModel::find_for_email(pool, &login_input.email).await;
+
+        let user_model = r_user_model.map_err(|e1| {
+            error!("Cannot login a user with id {} due to error {}",
+                        login_input.email, e1.message);
+            return Err::<UserModel, async_graphql::Error>(async_graphql::Error::new("[LOGIN_001] Cannot find a user!")
+                .extend_with(|_, e| e.set("error_code", "LOGIN_001")));
+        }).unwrap();
+
+        let r_token: Result<String, jsonwebtoken::errors::Error> =
+            create_token(&user_model.id.to_string(), &user_model.email);
+        match r_token {
+            Ok(token) => Ok(LoginInfo {
+                token,
+                user: UserModel::convert_to_gql(&user_model),
+            }),
+            Err(error) => {
+                error!("Cannot create a token for the user with id [{}] due to error [{}]", login_input.email.clone(), error.to_string());
+                Err(
+                    async_graphql::Error::new("[LOGIN_002] Cannot create a token!")
+                        .extend_with(|_, e| e.set("error_code", "LOGIN_002")),
+                )
             }
-        } else {
-            Err(utils::error_database_not_setup())
         }
     }
 }

@@ -6,6 +6,7 @@ use sqlx::PgPool;
 
 use crate::gql_models::post_gql_model::Post;
 use crate::psql_models::post_psql_model::PostModel;
+use crate::utils;
 
 #[derive(SimpleObject, Deserialize, Serialize)]
 #[graphql(complex)]
@@ -23,18 +24,13 @@ pub struct User {
 impl User {
     async fn posts(&self, ctx: &Context<'_>) -> FieldResult<Vec<Post>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        match r_pool {
-            Ok(pool) => {
-                let r_posts: FieldResult<Vec<PostModel>> =
-                    PostModel::find_posts_for_user(pool, &self.id.to_string()).await;
-                match r_posts {
-                    Ok(post_models) => Ok(PostModel::convert_all_to_gql(&post_models)),
-                    Err(_) => Err(async_graphql::Error::new("Posts not found!")),
-                }
-            }
-            Err(_) => Err(async_graphql::Error::new(
-                "Users not found, error encountered",
-            )),
+        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
+
+        let r_posts: FieldResult<Vec<PostModel>> =
+            PostModel::find_posts_for_user(pool, &self.id.to_string()).await;
+        match r_posts {
+            Ok(post_models) => Ok(PostModel::convert_all_to_gql(&post_models)),
+            Err(_) => Err(async_graphql::Error::new("Posts not found!")),
         }
     }
 }

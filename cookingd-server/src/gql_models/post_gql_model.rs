@@ -35,36 +35,37 @@ pub struct Post {
 impl Post {
     async fn user(&self, ctx: &Context<'_>) -> FieldResult<User> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        if let Ok(pool) = r_pool {
-            let r_user: FieldResult<UserModel> =
-                UserModel::read_one(pool, &self.user_id.to_string()).await;
-            match r_user {
-                Ok(user_model) => Ok(UserModel::convert_to_gql(&user_model)),
-                Err(_) => Err(async_graphql::Error::new("User not found!")),
-            }
-        } else {
-            Err(utils::error_database_not_setup())
+
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
+
+        let r_user: FieldResult<UserModel> =
+            UserModel::read_one(pool, &self.user_id.to_string()).await;
+        match r_user {
+            Ok(user_model) => Ok(UserModel::convert_to_gql(&user_model)),
+            Err(_) => Err(async_graphql::Error::new("User not found!")),
         }
     }
 
     async fn tags(&self, ctx: &Context<'_>) -> FieldResult<Option<Vec<Tag>>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        if let Ok(pool) = r_pool {
-            let r_tag_models: FieldResult<Vec<TagModel>> =
-                TagModel::find_tags_for_post(pool, &self.id.to_string()).await;
-            match r_tag_models {
-                Ok(tag_models) => Ok(Some(TagModel::convert_all_to_gql(&tag_models))),
-                Err(_) => Ok(None),
-            }
-        } else {
-            Err(utils::error_database_not_setup())
+
+        let Ok(pool) = r_pool else {
+            return Err(utils::error_database_not_setup());
+        };
+
+        let r_tag_models: FieldResult<Vec<TagModel>> =
+            TagModel::find_tags_for_post(pool, &self.id.to_string()).await;
+        match r_tag_models {
+            Ok(tag_models) => Ok(Some(TagModel::convert_all_to_gql(&tag_models))),
+            Err(_) => Ok(None),
         }
     }
 
 
     async fn main_image_url(&self, _ctx: &Context<'_>) -> FieldResult<Option<String>> {
         let backend_url: String = env::var("BACKEND_URL").expect("BACKEND_URL is not set");
-        let port: String = env::var("PORT").expect("PORT is not set");
         let image_type = self
             .main_image_file_type
             .clone()

@@ -87,11 +87,11 @@ async fn main() -> Result<()> {
             )
             .service(web::resource("/").guard(guard::Post()).to(index))
             .service(
-                web::resource("/playground")
+                web::resource("/api/playground")
                     .guard(guard::Get())
                     .to(index_playground),
             )
-            .route("/ping", web::get().to(ping))
+            .route("/api/ping", web::get().to(ping))
     });
 
     info!("Starting server");

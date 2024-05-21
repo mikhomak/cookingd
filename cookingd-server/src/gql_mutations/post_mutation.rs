@@ -41,62 +41,52 @@ impl PostMutations {
         post_input: PostCreationInput,
     ) -> FieldResult<Post> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-        match r_pool {
-            Ok(pool) => {
-                let is_registration_enabled: bool = is_posting_allowed(pool).await;
-                if is_registration_enabled == false {
-                    return Err(async_graphql::Error::new("Posting failed!"));
+
+
+        let is_registration_enabled: bool = is_posting_allowed(pool).await;
+        if is_registration_enabled == false {
+            return Err(async_graphql::Error::new("Posting failed!"));
+        }
+
+        let r_user = ctx.data::<CookingdClaims>();
+
+        let user_claims = r_user.map_err(|_| {
+            error!("Cannot create a post due to the user not being present in the context");
+            return Err::<CookingdClaims, async_graphql::Error>(async_graphql::Error::new("Posting failed! Bad user"));
+        }).unwrap();
+
+        let r_created_post: FieldResult<PostModel> =
+            PostModel::create(&pool, ctx, &post_input, &user_claims.id).await;
+
+        match r_created_post {
+            Ok(created_post) => {
+                if let Some(ref tags) = post_input.tags {
+                    let _ = create_and_associate_tags_with_post_uuid(
+                        &pool,
+                        &created_post.id,
+                        &tags,
+                        Some(&user_claims.id),
+                    ).await;
                 }
 
-                let r_user = ctx.data::<CookingdClaims>();
-                match r_user {
-                    Ok(user_claims) => {
-                        let r_created_post: FieldResult<PostModel> =
-                            PostModel::create(&pool, ctx, &post_input, &user_claims.id).await;
+                store_image(
+                    post_input,
+                    &created_post.id.to_string(),
+                    &user_claims.id,
+                    ctx,
+                ).await?;
 
-                        match r_created_post {
-                            Ok(created_post) => {
-                                if let Some(ref tags) = post_input.tags {
-                                    let _ = create_and_associate_tags_with_post_uuid(
-                                        &pool,
-                                        &created_post.id,
-                                        &tags,
-                                        Some(&user_claims.id),
-                                    )
-                                    .await;
-                                }
-
-                                store_image(
-                                    post_input,
-                                    &created_post.id.to_string(),
-                                    &user_claims.id,
-                                    ctx,
-                                )
-                                .await?;
-
-                                Ok(PostModel::convert_to_gql(&created_post))
-                            }
-                            Err(error) => {
-                                error!("Cannot create a post due to error [{}]", error.message);
-                                Err(async_graphql::Error::new("Posting failed!"))
-                            }
-                        }
-                    }
-                    Err(_) => {
-                        error!(
-                            "Cannot create a post due to the user not being present in the context"
-                        );
-                        Err(async_graphql::Error::new("Posting failed! Bad user"))
-                    }
-                }
+                Ok(PostModel::convert_to_gql(&created_post))
             }
-            Err(_) => {
-                error!("Error at creating a user. Database is not set in context!");
-                Err(async_graphql::Error::new("Server error!"))
+            Err(error) => {
+                error!("Cannot create a post due to error [{}]", error.message);
+                Err(async_graphql::Error::new("Posting failed!"))
             }
         }
     }
+
 
     async fn assign_tags(
         &self,
@@ -104,18 +94,12 @@ impl PostMutations {
         tag_input: TagAssignationInput,
     ) -> FieldResult<bool> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-        match r_pool {
-            Ok(pool) => {
-                create_and_associate_tags(&pool, &tag_input.post_id, &tag_input.tag_names, None)
-                    .await?;
-                Ok(true)
-            }
-            Err(_) => {
-                error!("Error at associating tags. Database is not set in context!");
-                Err(async_graphql::Error::new("Server error!"))
-            }
-        }
+
+        create_and_associate_tags(&pool, &tag_input.post_id, &tag_input.tag_names, None)
+            .await?;
+        Ok(true)
     }
 
     async fn remove_tags(
@@ -124,30 +108,22 @@ impl PostMutations {
         tag_input: TagAssignationInput,
     ) -> FieldResult<bool> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
+        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
 
-        match r_pool {
-            Ok(pool) => {
-                let post_uuid: sqlx::types::Uuid =
-                    sqlx::types::Uuid::parse_str(&tag_input.post_id).unwrap();
-                TagModel::remove_tag_association(pool, &tag_input.tag_names, &post_uuid).await;
-                Ok(true)
-            }
-            Err(_) => {
-                error!("Error at associating tags. Database is not set in context!");
-                Err(async_graphql::Error::new("Server error!"))
-            }
-        }
+        let post_uuid: sqlx::types::Uuid =
+            sqlx::types::Uuid::parse_str(&tag_input.post_id).unwrap();
+        TagModel::remove_tag_association(pool, &tag_input.tag_names, &post_uuid).await;
+        Ok(true)
     }
 
     async fn delete_post(&self, ctx: &Context<'_>, post_id: String) -> FieldResult<bool> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
-        if let Ok(pool) = r_pool {
-            match PostModel::delete_post_for_id(pool, &post_id).await {
-                Ok(_) => Ok(true),
-                Err(_) => Ok(false),
-            }
-        } else {
-            Err(utils::error_database_not_setup())
+        let pool = r_pool.map_err(|_| { return Err::<&PgPool, async_graphql::Error>(utils::error_database_not_setup()); }).unwrap();
+
+
+        match PostModel::delete_post_for_id(pool, &post_id).await {
+            Ok(_) => Ok(true),
+            Err(_) => Ok(false),
         }
     }
 }
