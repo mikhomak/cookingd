@@ -2,7 +2,9 @@ use crate::gql_models::post_gql_model::Post;
 use crate::gql_mutations::post_mutation::PostCreationInput;
 use crate::services::image_service;
 use async_graphql::{Context, FieldResult};
+use async_graphql::futures_util::TryFutureExt;
 use chrono::{DateTime, Utc};
+use log::Record;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 
@@ -21,9 +23,11 @@ pub struct PostModel {
 }
 
 impl PostModel {
-    pub async fn get_latest_posts(pool: &PgPool) -> FieldResult<Vec<PostModel>> {
+    pub async fn get_latest_posts(page: i64, pool: &PgPool) -> FieldResult<Vec<PostModel>> {
         let r_posts: Vec<PostModel> =
-            sqlx::query_as!(PostModel, "SELECT * FROM post ORDER BY created_at DESC")
+            sqlx::query_as!(PostModel, "SELECT * FROM post ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+                10,
+                page * 10)
                 .fetch_all(pool)
                 .await?;
         Ok(r_posts)
@@ -44,7 +48,7 @@ impl PostModel {
                 );
             }
         }
-        let r_post : PostModel = sqlx::query_as!(
+        let r_post: PostModel = sqlx::query_as!(
             PostModel,
             "INSERT INTO post ( user_id, title, text, rating, main_image_file_type) VALUES ($1, $2, $3, $4, $5) RETURNING *",
             sqlx::types::Uuid::parse_str(user_id)?,
@@ -67,8 +71,8 @@ impl PostModel {
             "SELECT * FROM post WHERE user_id = $1",
             sqlx::types::Uuid::parse_str(user_id)?
         )
-        .fetch_all(pool)
-        .await?;
+            .fetch_all(pool)
+            .await?;
         Ok(r_posts)
     }
 
@@ -78,8 +82,8 @@ impl PostModel {
             "SELECT * FROM post WHERE id = $1",
             sqlx::types::Uuid::parse_str(post_id)?
         )
-        .fetch_one(pool)
-        .await?;
+            .fetch_one(pool)
+            .await?;
         Ok(r_post)
     }
 
@@ -88,9 +92,16 @@ impl PostModel {
             "DELETE FROM post WHERE id = $1",
             sqlx::types::Uuid::parse_str(post_id)?
         )
-        .execute(pool)
-        .await?;
+            .execute(pool)
+            .await?;
         Ok(())
+    }
+
+    pub async fn count_posts(pool: &PgPool) -> i64 {
+        let count = sqlx::query!("SELECT COUNT(*) FROM post").fetch_one(pool).await;
+        count.map(|record| record.count)
+            .map(|option: Option<i64>| option.unwrap_or(0))
+            .unwrap_or(0)
     }
 
     pub fn convert_to_gql(&self) -> Post {

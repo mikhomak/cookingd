@@ -1,25 +1,38 @@
 use crate::gql_models::post_gql_model::Post;
 use crate::gql_queries::PostQuery;
 use crate::psql_models::post_psql_model::PostModel;
-use async_graphql::Context;
+use async_graphql::{Context, SimpleObject};
 use async_graphql::FieldResult;
 use async_graphql::Object;
 use log::error;
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
+use crate::gql_models::user_gql_model::User;
 use crate::utils;
+
+
+#[derive(SimpleObject, Deserialize, Serialize)]
+pub struct PagePosts {
+    pub posts: Vec<Post>,
+    pub pages: i64,
+}
 
 #[Object(extends)]
 impl PostQuery {
-    async fn latest_posts<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<Post>> {
+    async fn latest_posts<'a>(&self, ctx: &'a Context<'_>, page: i64) -> FieldResult<PagePosts> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
         let Ok(pool) = r_pool else {
             return Err(utils::error_database_not_setup());
         };
 
-        let r_posts: FieldResult<Vec<PostModel>> = PostModel::get_latest_posts(&pool).await;
+        let r_posts: FieldResult<Vec<PostModel>> = PostModel::get_latest_posts(page, &pool).await;
+        let counted_posts = PostModel::count_posts(pool).await;
         match r_posts {
-            Ok(posts) => Ok(PostModel::convert_all_to_gql(&posts)),
+            Ok(posts) => Ok(PagePosts {
+                posts: PostModel::convert_all_to_gql(&posts),
+                pages: counted_posts / 10,
+            }),
             Err(error) => {
                 error!(
                             "Posts couldn't be fetched from the db due to error [{}]",
