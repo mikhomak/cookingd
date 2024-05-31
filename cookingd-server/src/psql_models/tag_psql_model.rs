@@ -28,7 +28,8 @@ impl TagModel {
         let mut query_builder: QueryBuilder<Postgres> =
             QueryBuilder::new("WITH created_tag AS (INSERT INTO tag (name, user_who_created) ");
 
-        query_builder.push_values(tag_names, |mut b, tag_id: &String| {
+        let lc_tag_names: Vec<String> = tag_names.iter().map(|tag| tag.to_lowercase()).collect();
+        query_builder.push_values(&lc_tag_names, |mut b, tag_id: &String| {
             b.push_bind(tag_id)
                 .push_bind(sqlx::types::Uuid::parse_str(o_user_id.unwrap_or("")).unwrap());
         });
@@ -36,7 +37,7 @@ impl TagModel {
         query_builder.push(" ON CONFLICT DO NOTHING RETURNING *),");
         query_builder.push(" existed_tag as (SELECT * FROM tag WHERE name IN(");
         let mut separated = query_builder.separated(", ");
-        for tag_name in tag_names.iter() {
+        for tag_name in lc_tag_names.iter() {
             separated.push_bind(tag_name.to_lowercase());
         }
         separated.push_unseparated(") ");

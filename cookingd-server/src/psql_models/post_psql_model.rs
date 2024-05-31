@@ -2,9 +2,7 @@ use crate::gql_models::post_gql_model::Post;
 use crate::gql_mutations::post_mutation::PostCreationInput;
 use crate::services::image_service;
 use async_graphql::{Context, FieldResult};
-use async_graphql::futures_util::TryFutureExt;
 use chrono::{DateTime, Utc};
-use log::Record;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 

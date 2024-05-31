@@ -7,7 +7,6 @@ use async_graphql::Object;
 use log::error;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use crate::gql_models::user_gql_model::User;
 use crate::utils;
 
 
