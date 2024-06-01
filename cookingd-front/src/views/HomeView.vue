@@ -34,60 +34,16 @@ const LATEST_POSTS_QUERY = gql`
 }
 `
 
-const VERIFY_LOGIN_QUERY = gql`
-query ( $token: String!){
-  verifyToken(token : $token){
-    token
-    user {
-     id
-     name
-    }
-  }
-}
-`
-
-const userStore = useUserStore();
-
 const { result, loading, error } = useQuery(LATEST_POSTS_QUERY, () => ({
   page: currentPage.value
 }));
-
-
-// @ts-ignore
-const tokenFromCookies = VueCookies.get('remember_me');
-const token_loading = ref(false);
-const token_error = ref(null);
-
-if (tokenFromCookies && !userStore.isLoggedIn) {
-  const { loading: token_loading, error: token_error, onResult } = useQuery(VERIFY_LOGIN_QUERY, () => ({
-    token: tokenFromCookies
-  }));
-  onResult(result => {
-    if (!result.loading) {
-      userStore.isLoggedIn = true;
-      userStore.token = result.data.verifyToken.token;
-      userStore.user = {
-        id: result.data.verifyToken.user.id,
-        name: result.data.verifyToken.user.name
-      };
-      router.push({ path: '/' })
-    }
-  });
-}
 
 </script>
 <template>
   <main>
     <h2>Homepage</h2>
 
-    <div v-if="token_loading">
-      <h3 style="color: darkorange;">Trying to log you in...</h3>
-    </div>
 
-    <div v-else-if="token_error">
-      <h3 style="color: red;">Something went wrong with logging you in!</h3>
-      <RouterLink to="/login" style="text-align: center;">Go to login</RouterLink>
-    </div>
 
     <div v-if="!loading">
       <!-- this shit is so stupid. fuck u vue what the fuck. 

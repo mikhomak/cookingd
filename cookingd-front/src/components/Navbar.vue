@@ -4,9 +4,12 @@ import { RouterLink } from 'vue-router'
 
 import { useUserStore } from '@/stores/useUserStore.ts'
 import router from '@/router';
+import VueCookies from 'vue-cookies'
 
 const userStore = useUserStore();
 function logout() {
+  // @ts-ignore
+  VueCookies.remove('remember_me');
   userStore.isLoggedIn = false;
   userStore.token = null;
   userStore.user = {};
