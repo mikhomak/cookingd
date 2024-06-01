@@ -61,7 +61,9 @@ const ALL_TAGS_QUERY = gql`
   }
 `
 
-const { result: tag_result, loading: tag_loading } = useQuery(ALL_TAGS_QUERY);
+const { result: tag_result, loading: tag_loading } = useQuery(ALL_TAGS_QUERY, {
+    fetchPolicy: 'no-cache'
+});
 
 </script>
 
@@ -104,8 +106,9 @@ const { result: tag_result, loading: tag_loading } = useQuery(ALL_TAGS_QUERY);
 
                 <div>
                     <label for="input_tag">Tags</label>
-                    <ul style="margin-top: 10px; columns:2; padding-left: 0;">
-                        <li v-if="!loading" v-for="tag in tag_result.allTags" style="
+                    <ul v-if="!tag_loading && tag_result !== undefined"
+                        style="margin-top: 10px; columns:2; padding-left: 0;">
+                        <li v-for="tag in tag_result.allTags" style="
                         margin: 7px 0 7px;
                         list-style-type: none;">
                             <span style="
@@ -118,11 +121,11 @@ const { result: tag_result, loading: tag_loading } = useQuery(ALL_TAGS_QUERY);
             tags.add(tag.name);
         }">{{ tag.name }}</span>
                         </li>
-
-                        <div v-else-if="loading">
-                            <h3 style="color: greenyellow">Loading posts...</h3>
-                        </div>
                     </ul>
+                    <div v-else-if="tag_loading">
+                        <h3 style="color: greenyellow">Loading tags...</h3>
+                    </div>
+
 
                     <li v-if="tags.size !== 0" v-for="tag in tags" style=" list-style-type: none;">
                         <span>{{ tag }}</span><button @click="(event) => {
