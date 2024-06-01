@@ -10,6 +10,11 @@ const router = createRouter({
       component: HomeView
     },
     {
+      path: '/page/:page',
+      name: 'home pagination',
+      component: HomeView
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue')
@@ -17,7 +22,7 @@ const router = createRouter({
     {
       path: '/my-account',
       name: 'my account',
-      component: () => import('../views/AboutView.vue')
+      component: () => import('../views/AccountView.vue')
     },
     {
       path: '/register',
