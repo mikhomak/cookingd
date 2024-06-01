@@ -7,7 +7,7 @@ const props = defineProps({
 });
 </script>
 <template>
-    <div style="display: flex;">
+    <div style="display: flex; flex-wrap: wrap;">
     <li v-if="props.tags" v-for="tag in props.tags" style="margin-right: 10px;">
         <TagComonent :tag="tag" />
     </li>

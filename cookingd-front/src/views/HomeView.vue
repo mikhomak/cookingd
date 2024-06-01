@@ -2,12 +2,13 @@
 import gql from 'graphql-tag'
 import { useQuery } from '@vue/apollo-composable'
 import ShortPost from '@/components/posts/ShortPost.vue'
+import Pagination from '@/components/Pagination.vue'
 import { useUserStore } from '@/stores/useUserStore';
 import { ref } from 'vue';
 import VueCookies from 'vue-cookies'
 import router from '@/router';
 
-const currentPage=ref(0);
+const currentPage = ref(0);
 
 const LATEST_POSTS_QUERY = gql`
   query($page: Int!){
@@ -48,7 +49,7 @@ query ( $token: String!){
 const userStore = useUserStore();
 
 const { result, loading, error } = useQuery(LATEST_POSTS_QUERY, () => ({
-  page:currentPage.value
+  page: currentPage.value
 }));
 
 
@@ -89,19 +90,15 @@ if (tokenFromCookies && !userStore.isLoggedIn) {
     </div>
 
     <div v-if="!loading">
-    <li v-for="post in result.latestPosts.posts" style=" list-style-type: none;">
-      <ShortPost :post="post" />
-    </li>
-    <!-- this shit is so stupid. fuck u vue what the fuck. 
+      <!-- this shit is so stupid. fuck u vue what the fuck. 
     how on earth you can fuck up the FOR loop so badly-->
-    <h4>pages</h4>
-    <div style="display: flex;">
-    <li v-for="page in parseInt(result.latestPosts.pages+1)" style="margin:5px; list-style-type: none;">
-        <button @click="()=>{currentPage= page-1}" v-bind:disabled="currentPage === page -1"
-          class="btn_page">{{ page-1 }}</button>
-    </li>
+      <Pagination :pages="result.latestPosts.pages" v-bind:current-page="currentPage"
+        @change-page="(newPage: number) => { currentPage = newPage; console.log('asdasd') }" />
+      <hr />
+      <li v-for="post in result.latestPosts.posts" style=" list-style-type: none;">
+        <ShortPost :post="post" />
+      </li>
     </div>
-  </div>
 
     <div v-else-if="loading">
       <h3 style="color: greenyellow">Loading posts...</h3>
@@ -110,8 +107,20 @@ if (tokenFromCookies && !userStore.isLoggedIn) {
   </main>
 </template>
 <style>
-.btn_page:disabled{
-  color:red;
+@media (min-width: 1020px) {
+  main {
+    width: 30%;
+  }
+}
+
+@media (max-width: 700px) {
+  main {
+    width: 100%;
+  }
+}
+
+.btn_page:disabled {
+  color: red;
   background-color: lightgreen;
   cursor: not-allowed;
 }
