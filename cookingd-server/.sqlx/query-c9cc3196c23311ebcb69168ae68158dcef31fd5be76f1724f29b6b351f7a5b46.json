@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM post WHERE user_id = $1",
+  "query": "SELECT * FROM post WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3",
   "describe": {
     "columns": [
       {
@@ -56,7 +56,9 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        "Uuid",
+        "Int8",
+        "Int8"
       ]
     },
     "nullable": [
@@ -72,5 +74,5 @@
       true
     ]
   },
-  "hash": "673f1274686e397efc356ec7b191baab20875cf92259870b1976584d10d6461f"
+  "hash": "c9cc3196c23311ebcb69168ae68158dcef31fd5be76f1724f29b6b351f7a5b46"
 }

@@ -1,11 +1,10 @@
 use crate::gql_models::post_gql_model::{Post, PostsPagination};
 use crate::gql_queries::PostQuery;
 use crate::psql_models::post_psql_model::PostModel;
-use async_graphql::{Context, SimpleObject};
+use async_graphql::Context;
 use async_graphql::FieldResult;
 use async_graphql::Object;
 use log::error;
-use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use crate::utils;
 
@@ -43,6 +42,7 @@ impl PostQuery {
         &self,
         ctx: &'a Context<'_>,
         user_id: String,
+        page: i64
     ) -> FieldResult<Vec<Post>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
@@ -51,7 +51,7 @@ impl PostQuery {
         };
 
         let r_posts: FieldResult<Vec<PostModel>> =
-            PostModel::find_posts_for_user(&pool, &user_id).await;
+            PostModel::find_posts_for_user(&pool, &user_id, page).await;
         match r_posts {
             Ok(posts) => Ok(PostModel::convert_all_to_gql(&posts)),
             Err(error) => {

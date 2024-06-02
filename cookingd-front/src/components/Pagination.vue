@@ -10,7 +10,7 @@ const emits = defineEmits<{
 
 <template>
     <h4>pages</h4>
-    <div style="display: flex;">
+    <div style="display: flex; flex-wrap: wrap;">
         <li v-for="page in props.pages! + 1" style="margin:5px; list-style-type: none;">
             <button @click="() => { emits('changePage', page - 1) }" v-bind:disabled="props.currentPage === page - 1"
                 class="btn_page">

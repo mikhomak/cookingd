@@ -4,7 +4,7 @@ use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::gql_models::post_gql_model::{Post, PostsPagination};
+use crate::gql_models::post_gql_model::PostsPagination;
 use crate::psql_models::post_psql_model::PostModel;
 use crate::utils;
 
@@ -23,7 +23,7 @@ pub struct User {
 
 #[ComplexObject]
 impl User {
-    async fn posts(&self, ctx: &Context<'_>) -> FieldResult<PostsPagination> {
+    async fn posts(&self, ctx: &Context<'_>, page: i64) -> FieldResult<PostsPagination> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
         let Ok(pool) = r_pool else {
@@ -31,12 +31,12 @@ impl User {
         };
 
         let r_posts: FieldResult<Vec<PostModel>> =
-            PostModel::find_posts_for_user(pool, &self.id.to_string()).await;
-        let pages: i64 = PostModel::count_posts(pool).await;
+            PostModel::find_posts_for_user(pool, &self.id.to_string(), page).await;
+        let pages: i64 = PostModel::count_posts_for_user(&self.id, pool).await;
         match r_posts {
             Ok(post_models) => Ok(PostsPagination {
                 posts: PostModel::convert_all_to_gql(&post_models),
-                pages
+                pages: pages / 10,
             }),
             Err(_) => Err(async_graphql::Error::new("Posts not found!")),
         }

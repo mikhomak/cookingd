@@ -20,8 +20,13 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue')
     },
     {
-      path: '/my-account',
-      name: 'my account',
+      path: '/my-account/:user',
+      name: 'my account user',
+      component: () => import('../views/AccountView.vue')
+    },
+    {
+      path: '/my-account/:user/page/:page',
+      name: 'my account user page',
       component: () => import('../views/AccountView.vue')
     },
     {

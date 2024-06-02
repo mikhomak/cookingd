@@ -63,11 +63,14 @@ impl PostModel {
     pub async fn find_posts_for_user(
         pool: &PgPool,
         user_id: &String,
+        page: i64,
     ) -> FieldResult<Vec<PostModel>> {
         let r_posts: Vec<PostModel> = sqlx::query_as!(
             PostModel,
-            "SELECT * FROM post WHERE user_id = $1",
-            sqlx::types::Uuid::parse_str(user_id)?
+            "SELECT * FROM post WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+            sqlx::types::Uuid::parse_str(user_id)?,
+            10,
+            page * 10
         )
             .fetch_all(pool)
             .await?;
@@ -102,6 +105,14 @@ impl PostModel {
             .unwrap_or(0)
     }
 
+    pub async fn count_posts_for_user(user_id: &sqlx::types::Uuid,pool: &PgPool) -> i64 {
+        let count = sqlx::query!("SELECT COUNT(*) FROM post WHERE user_id = $1",
+            user_id
+        ).fetch_one(pool).await;
+        count.map(|record| record.count)
+            .map(|option: Option<i64>| option.unwrap_or(0))
+            .unwrap_or(0)
+    }
     pub fn convert_to_gql(&self) -> Post {
         return Post {
             id: self.id,

@@ -22,7 +22,7 @@ function logout() {
     <h3>Cookingd</h3>
     <h4>your personal cooking diary</h4>
     <RouterLink to="/" >Home</RouterLink>
-    <RouterLink v-if="userStore.isLoggedIn" to="/my-account">My Account [{{ userStore.user.name }}]</RouterLink>
+    <router-link v-if="userStore.isLoggedIn" :to="`/my-account/${userStore.user.name}`">My Account [{{ userStore.user.name }}] </router-link>
     <RouterLink to="/about">About</RouterLink>
   </nav>
   <nav v-if="userStore.isLoggedIn" style="padding-top: 0;">
