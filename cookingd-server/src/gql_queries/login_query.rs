@@ -12,6 +12,7 @@ use crate::utils;
 
 #[Object(extends)]
 impl LoginQuery {
+
     #[graphql(guard = "RoleGuard::new(Role::Anon)")]
     async fn verify_token<'a>(
         &self,
@@ -52,4 +53,5 @@ impl LoginQuery {
             }
         }
     }
+
 }

@@ -12,6 +12,7 @@ use crate::utils;
 
 #[Object(extends)]
 impl TagQuery {
+
     #[graphql(guard = "RoleGuard::new(Role::User)")]
     async fn all_tags<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<Tag>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();

@@ -34,6 +34,7 @@ pub struct TagAssignationInput {
 
 #[async_graphql::Object]
 impl PostMutations {
+
     #[graphql(guard = "RoleGuard::new(Role::User)")]
     async fn create_post(
         &self,

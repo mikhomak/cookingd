@@ -10,6 +10,7 @@ use crate::utils;
 
 #[Object(extends)]
 impl UserQuery {
+
     async fn users<'a>(&self, ctx: &'a Context<'_>) -> FieldResult<Vec<User>> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 

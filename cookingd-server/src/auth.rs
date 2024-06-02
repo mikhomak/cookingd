@@ -69,7 +69,7 @@ pub fn create_token(id: &String, email: &String) -> Result<String, Error> {
 
 pub fn get_token(token: &String) -> Result<TokenData<CookingdClaims>, Error> {
     let auth_secret = dotenv::var("AUTH_SECRET").expect("Auth secret is not set!");
-    let token = decode::<CookingdClaims>(
+    let token: TokenData<CookingdClaims> = decode::<CookingdClaims>(
         token,
         &DecodingKey::from_secret(auth_secret.as_ref()),
         &Validation::default(),

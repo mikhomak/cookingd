@@ -31,6 +31,12 @@ pub struct Post {
     pub main_image_file_type: Option<String>,
 }
 
+#[derive(SimpleObject, Deserialize, Serialize)]
+pub struct PostsPagination {
+    pub posts: Vec<Post>,
+    pub pages: i64,
+}
+
 #[ComplexObject]
 impl Post {
     async fn user(&self, ctx: &Context<'_>) -> FieldResult<User> {

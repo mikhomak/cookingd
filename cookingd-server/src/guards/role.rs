@@ -4,6 +4,7 @@ use async_graphql::{Context, Error, Guard};
 pub enum Role {
     User,
     Anon,
+    Admin,
 }
 
 pub struct RoleGuard {

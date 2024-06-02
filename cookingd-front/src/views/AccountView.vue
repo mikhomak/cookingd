@@ -6,25 +6,28 @@ import ShortPost from '@/components/posts/ShortPost.vue'
 
 const userStore = useUserStore();
 const USER_INFO_QUERY = gql`
- query($id: String!){
-  user(id: $id){
+query ($id: String!) {
+  user(id: $id) {
     name
-    posts{
-    id
-    title
-    likes
-    rating
-    text
-    shortText
-    createdAt
-    mainImageUrl
-    tags{
-      name
+    posts {
+      posts {
+        id
+        title
+        likes
+        rating
+        text
+        shortText
+        createdAt
+        mainImageUrl
+        tags {
+          name
+        }
+        user {
+          name
+        }
+      }
+      pages
     }
-    user{
-      name
-    }
-  }
   }
 }
 `
@@ -32,7 +35,7 @@ const USER_INFO_QUERY = gql`
 const { result, loading, error } = useQuery(USER_INFO_QUERY, () => ({
   id: userStore.user.id
 }));
-console.log(result)
+
 </script>
 <template>
   <main>
@@ -40,7 +43,7 @@ console.log(result)
     <div v-if="!loading">
       user: {{ result.user.name }}
       <h3>Posts:</h3>
-      <li v-for="post in result.user.posts" style=" list-style-type: none;">
+      <li v-for="post in result.user.posts.posts" style=" list-style-type: none;">
         <ShortPost :post="post" />
       </li>
     </div>

@@ -1,4 +1,4 @@
-use crate::gql_models::post_gql_model::Post;
+use crate::gql_models::post_gql_model::{Post, PostsPagination};
 use crate::gql_queries::PostQuery;
 use crate::psql_models::post_psql_model::PostModel;
 use async_graphql::{Context, SimpleObject};
@@ -10,15 +10,10 @@ use sqlx::PgPool;
 use crate::utils;
 
 
-#[derive(SimpleObject, Deserialize, Serialize)]
-pub struct PagePosts {
-    pub posts: Vec<Post>,
-    pub pages: i64,
-}
-
 #[Object(extends)]
 impl PostQuery {
-    async fn latest_posts<'a>(&self, ctx: &'a Context<'_>, page: i64) -> FieldResult<PagePosts> {
+
+    async fn latest_posts<'a>(&self, ctx: &'a Context<'_>, page: i64) -> FieldResult<PostsPagination> {
         let r_pool: Result<&PgPool, async_graphql::Error> = ctx.data::<PgPool>();
 
         let Ok(pool) = r_pool else {
@@ -28,7 +23,7 @@ impl PostQuery {
         let r_posts: FieldResult<Vec<PostModel>> = PostModel::get_latest_posts(page, &pool).await;
         let counted_posts = PostModel::count_posts(pool).await;
         match r_posts {
-            Ok(posts) => Ok(PagePosts {
+            Ok(posts) => Ok(PostsPagination {
                 posts: PostModel::convert_all_to_gql(&posts),
                 pages: counted_posts / 10,
             }),
