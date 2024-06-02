@@ -1,6 +1,6 @@
 use actix_cors::Cors;
 use actix_files;
-use actix_web::{guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, error};
 use anyhow::Result;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::{EmptySubscription, Schema};
@@ -9,6 +9,7 @@ use dotenv::dotenv;
 use log::info;
 use sqlx::postgres::PgPool;
 use std::env;
+use actix_web::dev::{Service, ServiceRequest};
 use web::Data;
 
 use crate::auth::index_token;
@@ -48,6 +49,8 @@ async fn index_playground() -> HttpResponse {
 async fn main() -> Result<()> {
     dotenv().ok();
 
+    let env: String = env::var("ENV").unwrap_or("local".to_string());
+
     let database_url: String = env::var("DATABASE_URL").expect("DATABASE_URL is not set");
     let host: String = env::var("HOST").expect("HOST is not set");
     let port: String = env::var("PORT").expect("PORT is not set");
@@ -75,6 +78,10 @@ async fn main() -> Result<()> {
             .allowed_header(http::header::CONTENT_TYPE.to_string())
             .max_age(3600);
 
+        let playground_cookie: &str = env!("PLAYGROUND_COOKIE");
+        let playground_cookie_value: &str = env!("PLAYGROUND_COOKIE_VALUE");
+        let is_local: bool = env.eq("local");
+
         App::new()
             .app_data(Data::new(schema.clone()))
             .wrap(middleware::Logger::default())
@@ -88,6 +95,20 @@ async fn main() -> Result<()> {
             .service(web::resource("/").guard(guard::Post()).to(index))
             .service(
                 web::resource("/api/playground")
+                    .wrap_fn(move |http_request: ServiceRequest, srv| {
+                        let has_cookie: bool = http_request.cookie(playground_cookie)
+                            .map(|cookie| cookie.value().to_string())
+                            .map(|value| value.eq(playground_cookie_value))
+                            .unwrap_or(false)
+                            .clone();
+                        let fut = srv.call(http_request);
+                        async move {
+                            if !is_local && !has_cookie {
+                                return Err(error::ErrorInternalServerError(""));
+                            }
+                            Ok(fut.await?)
+                        }
+                    })
                     .guard(guard::Get())
                     .to(index_playground),
             )
