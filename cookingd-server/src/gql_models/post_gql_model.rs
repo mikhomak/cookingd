@@ -35,6 +35,7 @@ pub struct Post {
 pub struct PostsPagination {
     pub posts: Vec<Post>,
     pub pages: i64,
+    pub total_amount: Option<i64>,
 }
 
 #[ComplexObject]

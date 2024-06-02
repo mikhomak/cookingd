@@ -37,6 +37,7 @@ impl User {
             Ok(post_models) => Ok(PostsPagination {
                 posts: PostModel::convert_all_to_gql(&post_models),
                 pages: pages / 10,
+                total_amount: Some(pages)
             }),
             Err(_) => Err(async_graphql::Error::new("Posts not found!")),
         }

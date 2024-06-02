@@ -25,6 +25,7 @@ impl PostQuery {
             Ok(posts) => Ok(PostsPagination {
                 posts: PostModel::convert_all_to_gql(&posts),
                 pages: counted_posts / 10,
+                total_amount: Some(counted_posts)
             }),
             Err(error) => {
                 error!(
