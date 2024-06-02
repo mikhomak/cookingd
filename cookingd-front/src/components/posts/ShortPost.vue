@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type Post } from '@/types/post'
 import TagList from './TagList.vue';
+import PostTopDetails from '@/components/posts/PostTopDetails.vue'
 const props = defineProps({
   // wtf is this shit
   // is this how you pass an object as props?
@@ -18,31 +19,24 @@ const props = defineProps({
     flex-direction: column;
   ">
     <h3 style="margin-bottom: 5px;">
-      <RouterLink to="">{{ props.post.title }}</RouterLink>
+      <router-link :to="`/post/${props.post.id}`">{{ props.post.title }}</router-link>
     </h3>
-    <div style="margin-bottom: 5px;">
-      author: <b>{{ props.post.user.name }}</b> <br/>
-      <i>rating : {{ props.post.rating }}/5</i>
-      <i style="float: right;">{{ new Date(props.post.createdAt).toLocaleDateString(
-        'en-GB', {
-        day: 'numeric', month: 'numeric', year: 'numeric'
-      }) }}</i>
-    </div>
-    <img v-if="props.post.mainImageUrl" v-bind:src="props.post.mainImageUrl" />
-    <img v-else src="@/assets/missing_image.webp" />
+    
+    <!-- I fucking hate ts so fucking much -->
+    <!-- @vue-ignore -->
+    <PostTopDetails :name="props!.post!.user!.name" :rating="props!.post!.rating!" :createdAt="props.post.createdAt"/>
+    <img v-if="props.post.mainImageUrl" v-bind:src="props.post.mainImageUrl" class="post_image"/>
+    <img v-else src="@/assets/missing_image.webp" class="post_image"/>
     <div style="flex:50%">
       <p>
         {{ props.post.shortText }}
       </p>
       likes: {{ props.post.likes }}
-     <TagList :tags="props.post.tags" /> 
+      <TagList :tags="props.post.tags" />
     </div>
   </div>
 </template>
 
 <style scoped>
-img {
-  max-width: 256px;
-  margin-bottom: 15px;
-}
+
 </style>

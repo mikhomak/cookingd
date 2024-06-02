@@ -50,7 +50,7 @@ const { result, loading, error } = useQuery(USER_INFO_QUERY, () => ({
 
 </script>
 <template>
-  <main>
+  <div>
     <h2>My Account</h2>
     <div v-if="!loading">
       user: {{ result.user.name }}
@@ -67,5 +67,5 @@ const { result, loading, error } = useQuery(USER_INFO_QUERY, () => ({
     <div v-else-if="error">
       <h3>Oopsie, there was an error!</h3>
     </div>
-  </main>
+  </div>
 </template>

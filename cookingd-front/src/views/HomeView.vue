@@ -44,7 +44,7 @@ const { result, loading, error } = useQuery(LATEST_POSTS_QUERY, () => ({
 
 </script>
 <template>
-  <main>
+  <div>
     <h2>Homepage</h2>
 
     <div v-if="!loading">
@@ -64,20 +64,10 @@ const { result, loading, error } = useQuery(LATEST_POSTS_QUERY, () => ({
       <h3 style="color: greenyellow">Loading posts...</h3>
     </div>
 
-  </main>
+  </div>
 </template>
 <style>
-@media (min-width: 1020px) {
-  main {
-    width: 30%;
-  }
-}
 
-@media (max-width: 700px) {
-  main {
-    width: 100%;
-  }
-}
 
 .btn_page:disabled {
   color: red;

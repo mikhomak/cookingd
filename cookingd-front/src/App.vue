@@ -67,8 +67,29 @@ if (tokenFromCookies && !userStore.isLoggedIn) {
       <RouterLink to="/login" style="text-align: center;">Go to login</RouterLink>
     </div>
 
+    <main>
     <RouterView />
+    </main>
   </div>
 </template>
 
-<style scoped></style>
+<style>
+@media (min-width: 1020px) {
+  main {
+    width: 30%;
+  }
+}
+
+@media (max-width: 700px) {
+  main {
+    width: 100%;
+  }
+}
+
+.post_image {
+  max-width: 256px;
+  margin-bottom: 15px;
+  align-self: center;
+}
+
+</style>

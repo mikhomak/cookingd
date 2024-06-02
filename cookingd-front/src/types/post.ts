@@ -1,4 +1,5 @@
 type Post = {
+  id: String,
   title: String,
   shortText: String,
   text: String,

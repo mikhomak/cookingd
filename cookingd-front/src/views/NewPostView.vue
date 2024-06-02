@@ -68,7 +68,7 @@ const { result: tag_result, loading: tag_loading } = useQuery(ALL_TAGS_QUERY, {
 </script>
 
 <template>
-    <main style="">
+    <div style="">
         <h2 style="margin: auto; text-align: center; padding-bottom: 20px;">Create new post</h2>
         <div v-if="new_post_created" style="width: 50%; margin: auto; text-align: center;">
             <h4 style="color: green;  padding-bottom: 20px;">
@@ -161,7 +161,7 @@ const { result: tag_result, loading: tag_loading } = useQuery(ALL_TAGS_QUERY, {
             </form>
         </div>
         <div v-else-if="loading">loading...</div>
-    </main>
+    </div>
 </template>
 
 <style scoped>
